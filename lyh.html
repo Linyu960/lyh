@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>佑佑与无尽阶梯 - 梦境</title>
+    <style>
+        :root {
+            --bg: #050510;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        body {
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', sans-serif;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-overflow-scrolling: none;
+            overscroll-behavior: none;
+        }
+
+        .game-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            max-height: 100vh;
+            max-width: 100vw;
+            padding: 4px 0;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            border-radius: 8px;
+            box-shadow: 0 0 80px rgba(140, 150, 200, 0.18), 0 0 160px rgba(120, 130, 180, 0.08), 0 0 30px rgba(200, 180, 220, 0.06);
+            max-height: calc(100vh - 150px);
+            max-width: 95vw;
+            aspect-ratio: 480 / 750;
+            object-fit: contain;
+            touch-action: manipulation;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mobile-controls {
+            display: none;
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            padding: 6px 16px;
+            gap: 5px;
+        }
+
+        .dpad-row {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+        .dpad-row.mid {
+            justify-content: space-between;
+            padding: 0 50px;
+        }
+
+        .dpad-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: rgba(180, 180, 210, 0.10);
+            border: 2px solid rgba(160, 160, 200, 0.28);
+            color: rgba(210, 210, 235, 0.8);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.1s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+        .dpad-btn:active {
+            background: rgba(200, 195, 230, 0.28);
+            border-color: rgba(200, 195, 240, 0.55);
+            transform: scale(0.92);
+            box-shadow: 0 0 22px rgba(170, 180, 230, 0.35);
+        }
+        .dpad-btn.space-btn {
+            width: auto;
+            padding: 0 24px;
+            font-size: 13px;
+            letter-spacing: 2px;
+            border-radius: 22px;
+        }
+
+        .hint-text {
+            color: rgba(170, 170, 200, 0.5);
+            font-size: 10px;
+            text-align: center;
+            letter-spacing: 1.2px;
+            margin-top: 2px;
+            pointer-events: none;
+            transition: opacity 0.8s;
+            padding: 0 10px;
+        }
+
+        @media (max-width: 768px),
+        (hover: none) and (pointer: coarse) {
+            .mobile-controls {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .hint-text.mobile-hint {
+                display: block;
+            }
+            .hint-text.desktop-hint {
+                display: none;
+            }
+            canvas {
+                max-height: calc(100vh - 210px);
+            }
+        }
+        @media (min-width: 769px) and (hover: hover) and (pointer: fine) {
+            .mobile-controls {
+                display: none;
+            }
+            .hint-text.mobile-hint {
+                display: none;
+            }
+            .hint-text.desktop-hint {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 🎵 背景音乐（狗狗互动时才播放） -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="game-wrapper">
+        <canvas id="gameCanvas"></canvas>
+        <div class="mobile-controls" id="mobileControls">
+            <div class="dpad-row">
+                <div class="dpad-btn" id="btnUp">▲</div>
+            </div>
+            <div class="dpad-row mid">
+                <div class="dpad-btn" id="btnLeft">◀</div>
+                <div class="dpad-btn space-btn" id="btnAction">对话</div>
+                <div class="dpad-btn" id="btnRight">▶</div>
+            </div>
+            <div class="dpad-row">
+                <div class="dpad-btn" id="btnDown">▼</div>
+            </div>
+        </div>
+        <div class="hint-text desktop-hint">⌨ 方向键移动 · 空格键对话 · 鼠标点击移动</div>
+        <div class="hint-text mobile-hint">👆 点击画面移动 · 点击狗狗互动 · 虚拟按键辅助</div>
+    </div>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const GAME_W = 480;
+            const GAME_H = 750;
+            const PI = Math.PI;
+            const sin = Math.sin;
+            const cos = Math.cos;
+            const random = Math.random;
+            const floor = Math.floor;
+            const abs = Math.abs;
+
+            function resizeCanvas() {
+                const maxW = Math.min(window.innerWidth * 0.95, 480);
+                const maxH = Math.min(window.innerHeight - 170, 750);
+                const scale = Math.min(maxW / GAME_W, maxH / GAME_H);
+                canvas.style.width = (GAME_W * scale) + 'px';
+                canvas.style.height = (GAME_H * scale) + 'px';
+                canvas.width = GAME_W;
+                canvas.height = GAME_H;
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            ctx.imageSmoothingEnabled = false;
+
+            function screenToGameCoords(clientX, clientY) {
+                const rect = canvas.getBoundingClientRect();
+                const canvasAspect = GAME_W / GAME_H;
+                const rectAspect = rect.width / rect.height;
+                let renderWidth, renderHeight, offsetX, offsetY;
+                if (rectAspect > canvasAspect) {
+                    renderHeight = rect.height;
+                    renderWidth = rect.height * canvasAspect;
+                    offsetX = (rect.width - renderWidth) / 2;
+                    offsetY = 0;
+                } else {
+                    renderWidth = rect.width;
+                    renderHeight = rect.width / canvasAspect;
+                    offsetX = 0;
+                    offsetY = (rect.height - renderHeight) / 2;
+                }
+                const gameX = (clientX - rect.left - offsetX) / renderWidth * GAME_W;
+                const gameY = (clientY - rect.top - offsetY) / renderHeight * GAME_H;
+                return {
+                    x: Math.max(0, Math.min(GAME_W, gameX)),
+                    y: Math.max(0, Math.min(GAME_H, gameY))
+                };
+            }
+
+            let clickRipples = [];
+
+            function addClickRipple(gameX, gameY, color = '#f0d890') {
+                clickRipples.push({
+                    x: gameX,
+                    y: gameY,
+                    radius: 2,
+                    maxRadius: 28 + random() * 18,
+                    life: 1,
+                    decay: 0.025 + random() * 0.02,
+                    color: color,
+                    glowColor: color === '#f0d890' ? '#ffe8b0' : '#ffd0d8'
+                });
+                if (clickRipples.length > 12) clickRipples.shift();
+            }
+
+            function updateClickRipples() {
+                for (let i = clickRipples.length - 1; i >= 0; i--) {
+                    const r = clickRipples[i];
+                    r.radius += (r.maxRadius - r.radius) * 0.15;
+                    r.life -= r.decay;
+                    if (r.life <= 0) clickRipples.splice(i, 1);
+                }
+            }
+
+            function drawClickRipples(ctx) {
+                for (const r of clickRipples) {
+                    const alpha = r.life;
+                    ctx.globalAlpha = alpha * 0.35;
+                    ctx.strokeStyle = r.glowColor;
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(r.x, r.y, r.radius, 0, PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = alpha * 0.55;
+                    ctx.strokeStyle = r.color;
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.arc(r.x, r.y, r.radius * 0.55, 0, PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = alpha * 0.8;
+                    ctx.fillStyle = r.color;
+                    ctx.beginPath();
+                    ctx.arc(r.x, r.y, 2.5, 0, PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+            }
+
+            const keys = {};
+            let actionPressed = false;
+            let actionJustPressed = false;
+
+            window.addEventListener('keydown', (e) => {
+                keys[e.key] = true;
+                if (e.key === ' ' || e.key === 'Enter' || e.key === 'e' || e.key === 'E') {
+                    if (!actionPressed) actionJustPressed = true;
+                    actionPressed = true;
+                    e.preventDefault();
+                }
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                keys[e.key] = false;
+                if (e.key === ' ' || e.key === 'Enter' || e.key === 'e' || e.key === 'E') {
+                    actionPressed = false;
+                }
+            });
+
+            const btnUp = document.getElementById('btnUp');
+            const btnDown = document.getElementById('btnDown');
+            const btnLeft = document.getElementById('btnLeft');
+            const btnRight = document.getElementById('btnRight');
+            const btnAction = document.getElementById('btnAction');
+
+            const mobileKeys = { up: false, down: false, left: false, right: false };
+            let mobileActionPressed = false;
+            let mobileActionJust = false;
+
+            function bindMobileBtn(el, keyName) {
+                el.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    mobileKeys[keyName] = true;
+                    if (keyName === 'action') {
+                        if (!mobileActionPressed) mobileActionJust = true;
+                        mobileActionPressed = true;
+                    }
+                });
+                el.addEventListener('pointerup', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    mobileKeys[keyName] = false;
+                    if (keyName === 'action') mobileActionPressed = false;
+                });
+                el.addEventListener('pointerleave', () => {
+                    mobileKeys[keyName] = false;
+                    if (keyName === 'action') mobileActionPressed = false;
+                });
+                el.addEventListener('pointercancel', () => {
+                    mobileKeys[keyName] = false;
+                    if (keyName === 'action') mobileActionPressed = false;
+                });
+            }
+
+            bindMobileBtn(btnUp, 'up');
+            bindMobileBtn(btnDown, 'down');
+            bindMobileBtn(btnLeft, 'left');
+            bindMobileBtn(btnRight, 'right');
+            bindMobileBtn(btnAction, 'action');
+
+            function isUp() { return keys['ArrowUp'] || keys['w'] || keys['W'] || mobileKeys.up; }
+
+            function isDown() { return keys['ArrowDown'] || keys['s'] || keys['S'] || mobileKeys.down; }
+
+            function isLeft() { return keys['ArrowLeft'] || keys['a'] || keys['A'] || mobileKeys.left; }
+
+            function isRight() { return keys['ArrowRight'] || keys['d'] || keys['D'] || mobileKeys.right; }
+
+            function isActionJust() {
+                const r = actionJustPressed || mobileActionJust;
+                actionJustPressed = false;
+                mobileActionJust = false;
+                return r;
+            }
+
+            function isAnyKeyPressed() {
+                return isUp() || isDown() || isLeft() || isRight();
+            }
+
+            // ==================== 浮空数学公式粒子系统 ====================
+            const formulaTexts = [
+                'E=mc²', '∫f(x)dx', '√-1', 'π≈3.1415', 'Σ∞', '∂/∂x',
+                'lim→∞', 'i²=-1', '∇·F', 'Δx→0', 'e^iπ+1=0', 'ℵ',
+                '∮', '∞', '∑n=1', 'φ', 'λ', 'θ', 'Ω', 'α+β',
+                'f\'(x)', '∃∀', '⊂', '∩∪', '⇒⇐', 'sin²+cos²=1',
+                'det(A)', '||v||', '⌊x⌋', 'ℜ(z)', '⊗', '⊕',
+                'x²+y²=r²', 'log₂(x)', 'ℏ', '∝', '∈', '∉',
+                '∪∩', '⊆', '∅', '∇²φ=0', 'Γ(n)', 'ζ(s)',
+                '∀ε>0', '∃δ>0', '∂²u/∂t²', 'ħ', 'ℓ', '℘',
+                '⊤', '⊥', '⊢', '⊨', '≅', '≈',
+                '⌈x⌉', '⌊x⌋', '⊗', '⊕', '⊖', '⊘',
+                '∏ᵢ₌₁', '∑ₙ₌₁', '∫ₐᵇ', '∬', '∭', '∯',
+                '∇×F', '∇·B=0', '∂E/∂t', '∇×H=J', '∳', '∲',
+                'ℂ', 'ℍ', 'ℕ', 'ℙ', 'ℚ', 'ℝ',
+                '𝕊', '𝕋', '𝕌', '𝕍', '𝕎', '𝕏'
+            ];
+
+            const formulaColors = [
+                '#c8d4ff', '#d4c8ff', '#c8e0ff', '#e0d0ff', '#c8d8f0', '#d8c8f0',
+                '#ffe8d0', '#ffd8c8', '#f0e0c8', '#e8d8f8', '#d0d8ff', '#f8e0d0',
+                '#c8d0f8', '#e0c8f0', '#d8e0ff', '#f0d8e8', '#cce0ff', '#e8d0f8',
+                '#ffecd0', '#d8c8e8', '#c8dcef', '#efd8c8', '#d0c8f0', '#ffe4d4',
+                '#c4d4f8', '#dcc8f4', '#c8e4f8', '#f4dcc8', '#d4d0fc', '#fce4cc',
+                '#b8d0ff', '#e0c0e8', '#c8f0e0', '#f0e0c0', '#d8d0e8', '#e8d8c8',
+                '#c0d0f0', '#e8c8d8', '#d0e0f0', '#f0d8d0', '#c8c8e8', '#e0e0d8'
+            ];
+
+            class FormulaParticle {
+                constructor() {
+                    this.reset(true);
+                }
+                reset(initial = false) {
+                    this.x = random() * GAME_W;
+                    this.y = initial ? random() * GAME_H : (random() < 0.5 ? -60 : GAME_H + 60);
+                    this.text = formulaTexts[floor(random() * formulaTexts.length)];
+                    this.colorIndex = floor(random() * formulaColors.length);
+                    this.baseColor = formulaColors[this.colorIndex];
+                    this.size = 8 + random() * 18;
+                    this.speedX = (random() - 0.5) * 0.12;
+                    this.speedY = -0.04 - random() * 0.1;
+                    this.baseAlpha = 0.04 + random() * 0.12;
+                    this.alpha = this.baseAlpha;
+                    this.wobbleAmp = 0.3 + random() * 0.6;
+                    this.wobbleSpeed = 0.0015 + random() * 0.004;
+                    this.wobbleOffset = random() * PI * 2;
+                    this.life = floor(random() * 1000);
+                    this.twinklePhase = random() * PI * 2;
+                    this.twinkleSpeed = 0.008 + random() * 0.02;
+                    this.glowSize = 2 + random() * 5;
+                }
+                update() {
+                    this.life++;
+                    this.x += this.speedX + sin(this.life * this.wobbleSpeed + this.wobbleOffset) * this.wobbleAmp *
+                        0.15;
+                    this.y += this.speedY + cos(this.life * this.wobbleSpeed * 1.3 + this.wobbleOffset) * this
+                        .wobbleAmp * 0.1;
+                    const twinkle = sin(this.life * this.twinkleSpeed + this.twinklePhase);
+                    this.alpha = this.baseAlpha + twinkle * 0.04;
+                    this.alpha = Math.max(0.02, Math.min(0.18, this.alpha));
+                    if (this.y < -80 || this.y > GAME_H + 80 || this.x < -120 || this.x > GAME_W + 120) {
+                        this.reset(false);
+                        if (random() < 0.5) {
+                            this.y = -60;
+                            this.x = random() * GAME_W;
+                        } else {
+                            this.y = GAME_H + 60;
+                            this.x = random() * GAME_W;
+                        }
+                    }
+                }
+                draw(ctx) {
+                    ctx.save();
+                    const glowAlpha = this.alpha * 0.3;
+                    const glowSize = this.glowSize;
+                    for (let ox = -glowSize; ox <= glowSize; ox += glowSize) {
+                        for (let oy = -glowSize; oy <= glowSize; oy += glowSize) {
+                            if (ox === 0 && oy === 0) continue;
+                            const dist = Math.sqrt(ox * ox + oy * oy);
+                            if (dist > glowSize + 1) continue;
+                            ctx.globalAlpha = glowAlpha * (1 - dist / (glowSize + 2));
+                            ctx.fillStyle = this.baseColor;
+                            ctx.font =
+                                `${this.size}px "Courier New", "Noto Serif SC", "Georgia", monospace`;
+                            ctx.fillText(this.text, this.x + ox, this.y + oy);
+                        }
+                    }
+                    ctx.globalAlpha = this.alpha;
+                    ctx.fillStyle = '#f8f4ff';
+                    ctx.font = `${this.size}px "Courier New", "Noto Serif SC", "Georgia", monospace`;
+                    ctx.fillText(this.text, this.x, this.y);
+                    ctx.globalAlpha = this.alpha * 0.5;
+                    ctx.fillStyle = this.baseColor;
+                    ctx.fillText(this.text, this.x + 0.3, this.y + 0.3);
+                    ctx.restore();
+                }
+            }
+
+            class LightPoint {
+                constructor() {
+                    this.reset(true);
+                }
+                reset(initial = false) {
+                    const centerBias = (GAME_W - 200) / 2;
+                    this.x = centerBias + random() * 200;
+                    this.y = initial ? random() * GAME_H : GAME_H + 30;
+                    if (initial && random() < 0.4) {
+                        this.y = GAME_H * 0.3 + random() * GAME_H * 0.5;
+                    }
+                    this.size = 1.5 + random() * 3.5;
+                    const colorType = random();
+                    if (colorType < 0.35) {
+                        this.coreColor = '#ffe8c0';
+                        this.glowColor = '#ffd4a0';
+                    } else if (colorType < 0.65) {
+                        this.coreColor = '#d0e0ff';
+                        this.glowColor = '#c0d4f8';
+                    } else if (colorType < 0.85) {
+                        this.coreColor = '#e8d0ff';
+                        this.glowColor = '#dcc0f8';
+                    } else {
+                        this.coreColor = '#ffe0e8';
+                        this.glowColor = '#ffd0d8';
+                    }
+                    this.speedX = (random() - 0.5) * 0.15;
+                    this.speedY = -0.1 - random() * 0.3;
+                    this.baseAlpha = 0.15 + random() * 0.5;
+                    this.alpha = this.baseAlpha;
+                    this.wobbleAmp = 0.3 + random() * 0.7;
+                    this.wobbleSpeed = 0.006 + random() * 0.02;
+                    this.wobbleOffset = random() * PI * 2;
+                    this.life = floor(random() * 500);
+                    this.twinklePhase = random() * PI * 2;
+                    this.twinkleSpeed = 0.02 + random() * 0.06;
+                    this.glowRadius = this.size * 2.5 + random() * 4;
+                }
+                update() {
+                    this.life++;
+                    this.x += this.speedX + sin(this.life * this.wobbleSpeed + this.wobbleOffset) * this.wobbleAmp;
+                    this.y += this.speedY;
+                    const twinkle = sin(this.life * this.twinkleSpeed + this.twinklePhase);
+                    this.alpha = this.baseAlpha + twinkle * 0.25;
+                    this.alpha = Math.max(0.06, Math.min(0.75, this.alpha));
+                    if (this.y < -40 || this.y > GAME_H + 40 || this.x < -60 || this.x > GAME_W + 60) {
+                        this.reset(false);
+                        this.y = GAME_H + 20 + random() * 20;
+                        const centerBias = (GAME_W - 200) / 2;
+                        this.x = centerBias + random() * 200;
+                    }
+                }
+                draw(ctx) {
+                    ctx.save();
+                    const gr = this.glowRadius;
+                    const outerGrad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, gr);
+                    outerGrad.addColorStop(0, this.glowColor);
+                    outerGrad.addColorStop(0.25, this.glowColor);
+                    outerGrad.addColorStop(0.7, 'rgba(0,0,0,0)');
+                    outerGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.globalAlpha = this.alpha * 0.5;
+                    ctx.fillStyle = outerGrad;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, gr, 0, PI * 2);
+                    ctx.fill();
+                    const midGrad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, gr * 0.5);
+                    midGrad.addColorStop(0, this.coreColor);
+                    midGrad.addColorStop(0.5, this.glowColor);
+                    midGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.globalAlpha = this.alpha * 0.7;
+                    ctx.fillStyle = midGrad;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, gr * 0.5, 0, PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = this.alpha;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 0.55, 0, PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = this.alpha * 0.8;
+                    ctx.fillStyle = this.coreColor;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 0.85, 0, PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            const formulaParticles = [];
+            const NUM_FORMULAS = 80;
+            for (let i = 0; i < NUM_FORMULAS; i++) {
+                formulaParticles.push(new FormulaParticle());
+            }
+
+            const lightPoints = [];
+            const NUM_LIGHTS = 35;
+            for (let i = 0; i < NUM_LIGHTS; i++) {
+                lightPoints.push(new LightPoint());
+            }
+
+            // ==================== 阶梯系统 ====================
+            const STEP_HEIGHT = 34;
+            const STEP_WIDTH = 140;
+            const STEP_X = (GAME_W - STEP_WIDTH) / 2;
+            const STEP_RIGHT = STEP_X + STEP_WIDTH;
+
+            let playerStepIndex = 10;
+            const INITIAL_PLAYER_STEP = 10;
+            let playerX = GAME_W / 2;
+            let worldOffsetY = 0;
+            let playerFacing = 'down';
+
+            const DOG_STEP_INDEX = 5;
+            let dogX = GAME_W / 2;
+            let dogVisible = true;
+            let dogApproachPhase = 0;
+            let dogApproachTimer = 0;
+            let dogJumpAnim = 0;
+            let dogJumpPhase = 0;
+
+            let targetX = null;
+            let targetStepIndex = null;
+            let hasTarget = false;
+            const AUTO_MOVE_SPEED_X = 1.0;
+            const AUTO_MOVE_SPEED_STEP = 0.05;
+            const TARGET_REACH_THRESHOLD_X = 3;
+            const TARGET_REACH_THRESHOLD_STEP = 0.3;
+
+            function worldStepToScreenY(stepIndex) {
+                return GAME_H / 2 + (stepIndex - playerStepIndex) * STEP_HEIGHT - worldOffsetY;
+            }
+
+            function getPlayerScreenY() {
+                return GAME_H / 2 - worldOffsetY;
+            }
+
+            function getPlayerScreenX() {
+                return playerX;
+            }
+
+            function getCurrentDogStep() {
+                if (dogApproachPhase === 0) {
+                    return DOG_STEP_INDEX;
+                } else if (dogApproachPhase === 1) {
+                    return DOG_STEP_INDEX + (dogApproachTimer * 0.04);
+                } else {
+                    return playerStepIndex + 1.5;
+                }
+            }
+
+            function getDogScreenPosition() {
+                if (!dogVisible && dogApproachPhase === 0) return null;
+                const dogStep = getCurrentDogStep();
+                const screenY = worldStepToScreenY(dogStep);
+                if (screenY < -60 || screenY > GAME_H + 60) return null;
+                let sx = dogX;
+                let sy = screenY;
+                if (dogJumpPhase === 1) {
+                    const jumpProgress = dogJumpAnim / 60;
+                    sy -= sin(jumpProgress * PI) * 35;
+                } else if (dogJumpPhase === 2) {
+                    sy = getPlayerScreenY() - 18;
+                    sx = getPlayerScreenX() + 8;
+                } else if (dogJumpPhase === 3) {
+                    const fallProgress = 1 - (dogJumpAnim / 90);
+                    sy = getPlayerScreenY() - 18 + fallProgress * 18;
+                }
+                return { x: sx, y: sy, step: dogStep };
+            }
+
+            const STATE = {
+                EXPLORING: 'exploring',
+                DOG_APPROACH: 'dog_approach',
+                DIALOGUE: 'dialogue',
+                FINISHED: 'finished'
+            };
+
+            let gameState = STATE.EXPLORING;
+            let dialogueQueue = [];
+            let dialogueIndex = 0;
+            let dialogueCharIndex = 0;
+            let dialogueText = '';
+            let dialogueSpeaker = '';
+            let dialogueFullText = '';
+            let dialogueTimer = 0;
+            const DIALOGUE_CHAR_SPEED = 6;
+
+            let heartParticles = [];
+
+            function spawnHeart(x, y) {
+                for (let i = 0; i < 10; i++) {
+                    heartParticles.push({
+                        x: x,
+                        y: y,
+                        vx: (random() - 0.5) * 2.8,
+                        vy: -random() * 3.5 - 1.5,
+                        life: 45 + random() * 45,
+                        maxLife: 90,
+                        size: 3 + random() * 12,
+                        color: random() < 0.5 ? '#ff8aa8' : '#ffb8c8',
+                        glowColor: random() < 0.5 ? '#ffc0d0' : '#ffe0e8'
+                    });
+                }
+            }
+
+            function updateHeartParticles() {
+                for (let i = heartParticles.length - 1; i >= 0; i--) {
+                    const p = heartParticles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.04;
+                    p.life--;
+                    if (p.life <= 0) heartParticles.splice(i, 1);
+                }
+            }
+
+            function drawHeartParticles(ctx) {
+                for (const p of heartParticles) {
+                    const alpha = Math.max(0, p.life / p.maxLife);
+                    const s = p.size;
+                    ctx.globalAlpha = alpha * 0.4;
+                    ctx.fillStyle = p.glowColor;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, s * 0.8, 0, PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x - s / 2, p.y - s / 2, s, s);
+                    ctx.fillRect(p.x - s / 2 - s * 0.35, p.y - s / 2 + s * 0.3, s * 0.7, s * 0.7);
+                    ctx.fillRect(p.x + s / 2 - s * 0.35, p.y - s / 2 + s * 0.3, s * 0.7, s * 0.7);
+                }
+                ctx.globalAlpha = 1;
+            }
+
+            function startDialogue(lines) {
+                dialogueQueue = lines;
+                dialogueIndex = 0;
+                gameState = STATE.DIALOGUE;
+                startDialogueLine();
+            }
+
+            function startDialogueLine() {
+                if (dialogueIndex >= dialogueQueue.length) {
+                    dialogueQueue = [];
+                    dialogueIndex = 0;
+                    dialogueCharIndex = 0;
+                    dialogueText = '';
+                    dialogueSpeaker = '';
+                    dialogueFullText = '';
+                    if (dogJumpPhase === 2 && gameState === STATE.DIALOGUE) {
+                        dogJumpPhase = 3;
+                        dogJumpAnim = 90;
+                    }
+                    gameState = STATE.FINISHED;
+                    return;
+                }
+                const line = dialogueQueue[dialogueIndex];
+                dialogueSpeaker = line.speaker;
+                dialogueFullText = line.text;
+                dialogueText = '';
+                dialogueCharIndex = 0;
+                dialogueTimer = 0;
+            }
+
+            function advanceDialogue() {
+                if (dialogueCharIndex < dialogueFullText.length) {
+                    dialogueCharIndex = dialogueFullText.length;
+                    dialogueText = dialogueFullText;
+                } else {
+                    dialogueIndex++;
+                    if (dialogueIndex >= dialogueQueue.length) {
+                        dialogueQueue = [];
+                        dialogueIndex = 0;
+                        dialogueCharIndex = 0;
+                        dialogueText = '';
+                        dialogueSpeaker = '';
+                        dialogueFullText = '';
+                        if (dogJumpPhase === 2) {
+                            dogJumpPhase = 3;
+                            dogJumpAnim = 90;
+                            spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 30);
+                        }
+                        gameState = STATE.FINISHED;
+                    } else {
+                        startDialogueLine();
+                    }
+                }
+            }
+
+            function updateDialogue() {
+                if (gameState !== STATE.DIALOGUE) return;
+                dialogueTimer++;
+                if (dialogueCharIndex < dialogueFullText.length && dialogueTimer % DIALOGUE_CHAR_SPEED === 0) {
+                    dialogueCharIndex++;
+                    dialogueText = dialogueFullText.substring(0, dialogueCharIndex);
+                }
+            }
+
+            function checkDogEncounter() {
+                if (gameState !== STATE.EXPLORING) return;
+                if (dogApproachPhase >= 3) return;
+
+                const dist = Math.abs(playerStepIndex - getCurrentDogStep());
+                const xDist = Math.abs(playerX - dogX);
+
+                if (dogApproachPhase === 0 && dist < 5 && xDist < 100) {
+                    dogApproachPhase = 1;
+                    dogApproachTimer = 0;
+                }
+                if (dogApproachPhase === 1) {
+                    dogApproachTimer++;
+                    const targetStep = playerStepIndex + 1.5;
+                    const dogCurrentStep = getCurrentDogStep();
+                    if (dogCurrentStep >= targetStep) {
+                        dogApproachPhase = 2;
+                        dogApproachTimer = 0;
+                    }
+                }
+                if (dogApproachPhase === 2 && dist < 1.8 && xDist < 70) {
+                    dogApproachPhase = 3;
+                    dogJumpPhase = 1;
+                    dogJumpAnim = 0;
+                    gameState = STATE.DOG_APPROACH;
+                }
+            }
+
+            function updateDogJump() {
+                if (dogJumpPhase === 1) {
+                    dogJumpAnim++;
+                    if (dogJumpAnim > 60) {
+                        dogJumpPhase = 2;
+                        dogJumpAnim = 0;
+                        // 🎵 狗狗第一次互动，开始播放音乐
+                        const bgMusic = document.getElementById('bgMusic');
+                        if (bgMusic) {
+                            bgMusic.volume = 0.3;
+                            bgMusic.play().catch(() => {});
+                        }
+                        spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 25);
+                        startDialogue([
+                            { speaker: '缪缪', text: '佑佑？' },
+                            { speaker: '', text: '(小狗兴奋地跳上缪缪的身子，用脑袋蹭
