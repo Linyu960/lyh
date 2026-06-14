@@ -378,8 +378,8 @@
             let dogApproachPhase = 0, dogApproachTimer = 0, dogJumpAnim = 0, dogJumpPhase = 0;
 
             let targetX = null, targetStepIndex = null, hasTarget = false;
-            const AUTO_MOVE_SPEED_X = 2.0;    // 自动移动速度 x2
-            const AUTO_MOVE_SPEED_STEP = 0.08; // 自动上下速度 x1.6
+            const AUTO_MOVE_SPEED_X = 2.0;
+            const AUTO_MOVE_SPEED_STEP = 0.08;
             const TARGET_REACH_THRESHOLD_X = 3, TARGET_REACH_THRESHOLD_STEP = 0.3;
 
             let footstepCooldown = 0;
@@ -398,16 +398,16 @@
                 const screenY = worldStepToScreenY(dogStep);
                 if (screenY < -60 || screenY > GAME_H + 60) return null;
                 let sx = dogX, sy = screenY;
-                if (dogJumpPhase === 1) { const jp = dogJumpAnim / 70; sy -= sin(jp * PI) * 35; } // 跳跃动画更快
+                if (dogJumpPhase === 1) { const jp = dogJumpAnim / 50; sy -= sin(jp * PI) * 35; }
                 else if (dogJumpPhase === 2) { sy = getPlayerScreenY() - 18; sx = getPlayerScreenX() + 8; }
-                else if (dogJumpPhase === 3) { const fp = 1 - (dogJumpAnim / 120); sy = getPlayerScreenY() - 18 + fp * 18; } // 落地更快
+                else if (dogJumpPhase === 3) { const fp = 1 - (dogJumpAnim / 90); sy = getPlayerScreenY() - 18 + fp * 18; }
                 return { x: sx, y: sy, step: dogStep };
             }
 
             const STATE = { EXPLORING: 'exploring', DOG_APPROACH: 'dog_approach', DIALOGUE: 'dialogue', FINISHED: 'finished' };
             let gameState = STATE.EXPLORING;
             let dialogueQueue = [], dialogueIndex = 0, dialogueCharIndex = 0, dialogueText = '', dialogueSpeaker = '', dialogueFullText = '', dialogueTimer = 0;
-            const DIALOGUE_CHAR_SPEED = 2; // 对话速度更快
+            const DIALOGUE_CHAR_SPEED = 2;
             let heartParticles = [];
 
             function spawnHeart(x, y) { for (let i = 0; i < 10; i++) { heartParticles.push({ x, y, vx: (random()-0.5)*2.8, vy: -random()*3.5-1.5, life: 45+random()*45, maxLife: 90, size: 3+random()*12, color: random()<0.5?'#ff8aa8':'#ffb8c8', glowColor: random()<0.5?'#ffc0d0':'#ffe0e8' }); } }
@@ -418,7 +418,7 @@
             function startDialogueLine() {
                 if (dialogueIndex >= dialogueQueue.length) {
                     dialogueQueue = []; dialogueIndex = 0; dialogueCharIndex = 0; dialogueText = ''; dialogueSpeaker = ''; dialogueFullText = '';
-                    if (dogJumpPhase === 2 && gameState === STATE.DIALOGUE) { dogJumpPhase = 3; dogJumpAnim = 120; } // 落地更快
+                    if (dogJumpPhase === 2 && gameState === STATE.DIALOGUE) { dogJumpPhase = 3; dogJumpAnim = 90; }
                     gameState = STATE.FINISHED; return;
                 }
                 const line = dialogueQueue[dialogueIndex]; dialogueSpeaker = line.speaker; dialogueFullText = line.text;
@@ -430,7 +430,7 @@
                     dialogueIndex++;
                     if (dialogueIndex >= dialogueQueue.length) {
                         dialogueQueue = []; dialogueIndex = 0; dialogueCharIndex = 0; dialogueText = ''; dialogueSpeaker = ''; dialogueFullText = '';
-                        if (dogJumpPhase === 2) { dogJumpPhase = 3; dogJumpAnim = 120; spawnHeart(getPlayerScreenX(), getPlayerScreenY()-30); }
+                        if (dogJumpPhase === 2) { dogJumpPhase = 3; dogJumpAnim = 90; spawnHeart(getPlayerScreenX(), getPlayerScreenY()-30); }
                         gameState = STATE.FINISHED;
                     } else { startDialogueLine(); }
                 }
@@ -448,7 +448,7 @@
             function updateDogJump() {
                 if (dogJumpPhase === 1) {
                     dogJumpAnim++;
-                    if (dogJumpAnim > 70) { dogJumpPhase = 2; dogJumpAnim = 0; startMusic(); playDogBark(); spawnHeart(getPlayerScreenX(), getPlayerScreenY()-25); // 跳跃更快
+                    if (dogJumpAnim > 50) { dogJumpPhase = 2; dogJumpAnim = 0; startMusic(); playDogBark(); spawnHeart(getPlayerScreenX(), getPlayerScreenY()-25);
                         startDialogue([ { speaker: '缪缪', text: '佑佑？' }, { speaker: '', text: '(小狗兴奋地跳上缪缪的身子，用脑袋蹭着她)' }, { speaker: '', text: '(佑佑热情地舔着缪缪的脸颊)' }, { speaker: '佑佑', text: '妈妈！' }, { speaker: '缪缪', text: '你会说话了？！' }, { speaker: '佑佑', text: '妈妈，我好想你……' }, { speaker: '缪缪', text: '我也好想你，佑佑……' } ]); }
                 }
                 if (dogJumpPhase === 3) { dogJumpAnim--; if (dogJumpAnim <= 0) { dogJumpPhase = 0; dogJumpAnim = 0; dogApproachPhase = 3; } }
@@ -458,7 +458,7 @@
                 if (gameState === STATE.DIALOGUE) return;
                 if (gameState === STATE.DOG_APPROACH) { updateDogJump(); if (gameState === STATE.DIALOGUE) return; if (dogJumpPhase === 0 && dogApproachPhase === 3) { gameState = STATE.FINISHED; } return; }
                 let moved = false;
-                const moveSpeed = 1.2, stepMoveSpeed = 0.05; // 键盘移动速度大幅提升
+                const moveSpeed = 1.2, stepMoveSpeed = 0.05;
                 if (isAnyKeyPressed()) { hasTarget = false; targetX = null; targetStepIndex = null; }
                 if (isLeft() && playerX > STEP_X + 15) { playerX -= moveSpeed; moved = true; playerFacing = 'left'; }
                 if (isRight() && playerX < STEP_RIGHT - 15) { playerX += moveSpeed; moved = true; playerFacing = 'right'; }
@@ -473,7 +473,7 @@
                         if (distY >= TARGET_REACH_THRESHOLD_STEP) { const stepY = Math.sign(dy) * Math.min(AUTO_MOVE_SPEED_STEP, distY); playerStepIndex += stepY; if (stepY < 0) playerFacing = 'up'; else if (stepY > 0) playerFacing = 'down'; moved = true; }
                     }
                 }
-                if (moved) { if (footstepCooldown <= 0) { playFootstep(); footstepCooldown = 16; } } // 脚步声间隔缩短
+                if (moved) { if (footstepCooldown <= 0) { playFootstep(); footstepCooldown = 16; } }
                 if (footstepCooldown > 0) footstepCooldown--;
                 if (playerStepIndex > INITIAL_PLAYER_STEP + 1) playerStepIndex = INITIAL_PLAYER_STEP + 1;
                 if (playerStepIndex < -50) playerStepIndex = -50;
@@ -801,7 +801,7 @@
             init(); gameLoop();
             window.addEventListener('resize', resizeCanvas);
             document.addEventListener('touchmove', function(e) { if (e.target.closest('canvas')) e.preventDefault(); }, { passive: false });
-            console.log('✨ 佑佑与无尽阶梯 - 梦境像素小游戏已就绪 (速度大幅提升)');
+            console.log('✨ 佑佑与无尽阶梯 - 梦境像素小游戏已就绪 (狗狗动作更快)');
         })();
     </script>
 </body>
