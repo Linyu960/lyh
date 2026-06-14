@@ -201,7 +201,7 @@
             function isActionJust() { const r = actionJustPressed || mobileActionJust; actionJustPressed = false; mobileActionJust = false; return r; }
             function isAnyKeyPressed() { return isUp() || isDown() || isLeft() || isRight(); }
 
-            // ==================== 粒子系统 ====================
+            // ==================== 粒子系统（更鲜艳 + 楼梯区域专用粒子） ====================
             const formulaTexts = [
                 'E=mc²', '∫f(x)dx', '√-1', 'π≈3.1415', 'Σ∞', '∂/∂x',
                 'lim→∞', 'i²=-1', '∇·F', 'Δx→0', 'e^iπ+1=0', 'ℵ',
@@ -218,14 +218,10 @@
                 'ℂ', 'ℍ', 'ℕ', 'ℙ', 'ℚ', 'ℝ',
                 '𝕊', '𝕋', '𝕌', '𝕍', '𝕎', '𝕏'
             ];
+            // 改为非常鲜艳的亮色，接近白色但有微妙的色相
             const formulaColors = [
-                '#c8d4ff', '#d4c8ff', '#c8e0ff', '#e0d0ff', '#c8d8f0', '#d8c8f0',
-                '#ffe8d0', '#ffd8c8', '#f0e0c8', '#e8d8f8', '#d0d8ff', '#f8e0d0',
-                '#c8d0f8', '#e0c8f0', '#d8e0ff', '#f0d8e8', '#cce0ff', '#e8d0f8',
-                '#ffecd0', '#d8c8e8', '#c8dcef', '#efd8c8', '#d0c8f0', '#ffe4d4',
-                '#c4d4f8', '#dcc8f4', '#c8e4f8', '#f4dcc8', '#d4d0fc', '#fce4cc',
-                '#b8d0ff', '#e0c0e8', '#c8f0e0', '#f0e0c0', '#d8d0e8', '#e8d8c8',
-                '#c0d0f0', '#e8c8d8', '#d0e0f0', '#f0d8d0', '#c8c8e8', '#e0e0d8'
+                '#ffffff', '#f8f4ff', '#f0f0ff', '#fff8f0', '#f0fff8',
+                '#fff0f0', '#f8fff0', '#f0f8ff', '#fff8f8', '#f8f0ff'
             ];
 
             class FormulaParticle {
@@ -239,7 +235,7 @@
                     this.size = 8 + random() * 18;
                     this.speedX = (random() - 0.5) * 0.12;
                     this.speedY = -0.04 - random() * 0.1;
-                    this.baseAlpha = 0.04 + random() * 0.12;
+                    this.baseAlpha = 0.15 + random() * 0.25; // 更显眼
                     this.alpha = this.baseAlpha;
                     this.wobbleAmp = 0.3 + random() * 0.6;
                     this.wobbleSpeed = 0.0015 + random() * 0.004;
@@ -254,8 +250,8 @@
                     this.x += this.speedX + sin(this.life * this.wobbleSpeed + this.wobbleOffset) * this.wobbleAmp * 0.15;
                     this.y += this.speedY + cos(this.life * this.wobbleSpeed * 1.3 + this.wobbleOffset) * this.wobbleAmp * 0.1;
                     const twinkle = sin(this.life * this.twinkleSpeed + this.twinklePhase);
-                    this.alpha = this.baseAlpha + twinkle * 0.04;
-                    this.alpha = Math.max(0.02, Math.min(0.18, this.alpha));
+                    this.alpha = this.baseAlpha + twinkle * 0.1;
+                    this.alpha = Math.max(0.1, Math.min(0.5, this.alpha));
                     if (this.y < -80 || this.y > GAME_H + 80 || this.x < -120 || this.x > GAME_W + 120) {
                         this.reset(false);
                         if (random() < 0.5) { this.y = -60; this.x = random() * GAME_W; }
@@ -264,7 +260,7 @@
                 }
                 draw(ctx) {
                     ctx.save();
-                    const glowAlpha = this.alpha * 0.3;
+                    const glowAlpha = this.alpha * 0.4;
                     const glowSize = this.glowSize;
                     for (let ox = -glowSize; ox <= glowSize; ox += glowSize) {
                         for (let oy = -glowSize; oy <= glowSize; oy += glowSize) {
@@ -278,16 +274,67 @@
                         }
                     }
                     ctx.globalAlpha = this.alpha;
-                    ctx.fillStyle = '#f8f4ff';
+                    ctx.fillStyle = '#ffffff';
                     ctx.font = `${this.size}px "Courier New", "Noto Serif SC", "Georgia", monospace`;
                     ctx.fillText(this.text, this.x, this.y);
-                    ctx.globalAlpha = this.alpha * 0.5;
-                    ctx.fillStyle = this.baseColor;
-                    ctx.fillText(this.text, this.x + 0.3, this.y + 0.3);
                     ctx.restore();
                 }
             }
 
+            // 楼梯区域专用粒子：x 限制在楼梯宽度内，y 从下往上飘
+            class StairParticle {
+                constructor() { this.reset(true); }
+                reset(initial = false) {
+                    const margin = 30;
+                    this.x = STEP_X - margin + random() * (STEP_WIDTH + margin * 2);
+                    this.y = initial ? random() * GAME_H : GAME_H + 40;
+                    this.text = formulaTexts[floor(random() * formulaTexts.length)];
+                    this.baseColor = formulaColors[floor(random() * formulaColors.length)];
+                    this.size = 10 + random() * 16;
+                    this.speedY = -0.15 - random() * 0.2; // 向上
+                    this.speedX = (random() - 0.5) * 0.1;
+                    this.alpha = 0.25 + random() * 0.3;
+                    this.twinklePhase = random() * PI * 2;
+                    this.twinkleSpeed = 0.01 + random() * 0.03;
+                    this.life = floor(random() * 500);
+                }
+                update() {
+                    this.life++;
+                    this.y += this.speedY;
+                    this.x += this.speedX;
+                    const twinkle = sin(this.life * this.twinkleSpeed + this.twinklePhase);
+                    this.alpha = 0.2 + twinkle * 0.15;
+                    this.alpha = Math.max(0.15, Math.min(0.5, this.alpha));
+                    if (this.y < -60) {
+                        this.reset(false);
+                        this.y = GAME_H + 30;
+                        const margin = 30;
+                        this.x = STEP_X - margin + random() * (STEP_WIDTH + margin * 2);
+                    }
+                    // 边界控制
+                    if (this.x < STEP_X - 60) this.speedX = abs(this.speedX);
+                    if (this.x > STEP_RIGHT + 60) this.speedX = -abs(this.speedX);
+                }
+                draw(ctx) {
+                    ctx.save();
+                    ctx.globalAlpha = this.alpha;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `${this.size}px "Courier New", "Noto Serif SC", "Georgia", monospace`;
+                    ctx.fillText(this.text, this.x, this.y);
+                    // 淡淡的光晕
+                    ctx.globalAlpha = this.alpha * 0.3;
+                    ctx.fillStyle = this.baseColor;
+                    ctx.fillText(this.text, this.x + 1, this.y + 1);
+                    ctx.restore();
+                }
+            }
+
+            const formulaParticles = [];
+            for (let i = 0; i < 80; i++) formulaParticles.push(new FormulaParticle());
+            const stairParticles = [];
+            for (let i = 0; i < 25; i++) stairParticles.push(new StairParticle());
+
+            // LightPoint 保持不变，但颜色可以更亮一点
             class LightPoint {
                 constructor() { this.reset(true); }
                 reset(initial = false) {
@@ -297,13 +344,13 @@
                     if (initial && random() < 0.4) { this.y = GAME_H * 0.3 + random() * GAME_H * 0.5; }
                     this.size = 1.5 + random() * 3.5;
                     const colorType = random();
-                    if (colorType < 0.35) { this.coreColor = '#ffe8c0'; this.glowColor = '#ffd4a0'; }
-                    else if (colorType < 0.65) { this.coreColor = '#d0e0ff'; this.glowColor = '#c0d4f8'; }
-                    else if (colorType < 0.85) { this.coreColor = '#e8d0ff'; this.glowColor = '#dcc0f8'; }
-                    else { this.coreColor = '#ffe0e8'; this.glowColor = '#ffd0d8'; }
+                    if (colorType < 0.35) { this.coreColor = '#ffffff'; this.glowColor = '#ffffff'; }
+                    else if (colorType < 0.65) { this.coreColor = '#f0f0ff'; this.glowColor = '#ffffff'; }
+                    else if (colorType < 0.85) { this.coreColor = '#fff0f0'; this.glowColor = '#ffffff'; }
+                    else { this.coreColor = '#f0fff0'; this.glowColor = '#ffffff'; }
                     this.speedX = (random() - 0.5) * 0.15;
                     this.speedY = -0.1 - random() * 0.3;
-                    this.baseAlpha = 0.15 + random() * 0.5;
+                    this.baseAlpha = 0.3 + random() * 0.5;
                     this.alpha = this.baseAlpha;
                     this.wobbleAmp = 0.3 + random() * 0.7;
                     this.wobbleSpeed = 0.006 + random() * 0.02;
@@ -319,7 +366,7 @@
                     this.y += this.speedY;
                     const twinkle = sin(this.life * this.twinkleSpeed + this.twinklePhase);
                     this.alpha = this.baseAlpha + twinkle * 0.25;
-                    this.alpha = Math.max(0.06, Math.min(0.75, this.alpha));
+                    this.alpha = Math.max(0.2, Math.min(0.8, this.alpha));
                     if (this.y < -40 || this.y > GAME_H + 40 || this.x < -60 || this.x > GAME_W + 60) {
                         this.reset(false);
                         this.y = GAME_H + 20 + random() * 20;
@@ -354,17 +401,10 @@
                     ctx.beginPath();
                     ctx.arc(this.x, this.y, this.size * 0.55, 0, PI * 2);
                     ctx.fill();
-                    ctx.globalAlpha = this.alpha * 0.8;
-                    ctx.fillStyle = this.coreColor;
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size * 0.85, 0, PI * 2);
-                    ctx.fill();
                     ctx.restore();
                 }
             }
 
-            const formulaParticles = [];
-            for (let i = 0; i < 80; i++) formulaParticles.push(new FormulaParticle());
             const lightPoints = [];
             for (let i = 0; i < 35; i++) lightPoints.push(new LightPoint());
 
@@ -492,7 +532,9 @@
 
             function update() {
                 updatePlayer(); updateDialogue(); updateDogJump(); updateHeartParticles(); updateClickRipples();
-                for (const p of formulaParticles) p.update(); for (const lp of lightPoints) lp.update();
+                for (const p of formulaParticles) p.update();
+                for (const p of stairParticles) p.update();
+                for (const lp of lightPoints) lp.update();
                 if (gameState === STATE.EXPLORING && dogApproachPhase < 3) checkDogEncounter();
                 if (gameState === STATE.DIALOGUE && isActionJust()) advanceDialogue();
                 if (gameState === STATE.FINISHED && isActionJust() && dogJumpPhase === 0) {
@@ -534,20 +576,31 @@
                     if (screenY < -50 || screenY > GAME_H + 50) continue;
                     const x = STEP_X, w = STEP_WIDTH, h = STEP_HEIGHT, d = STEP_DEPTH;
                     const topY = screenY - h / 2;
+                    // 踏板改为更白
                     const treadGrad = ctx.createLinearGradient(x, topY - d, x, topY);
-                    treadGrad.addColorStop(0, '#faf7f0'); treadGrad.addColorStop(0.3, '#f0ece4'); treadGrad.addColorStop(1, '#e0dcd4');
-                    ctx.fillStyle = treadGrad; ctx.fillRect(x, topY - d, w, d);
-                    ctx.fillStyle = 'rgba(255,255,250,0.7)'; ctx.fillRect(x + 2, topY - d + 1, w - 4, 2);
+                    treadGrad.addColorStop(0, '#ffffff');
+                    treadGrad.addColorStop(0.3, '#fdfdfd');
+                    treadGrad.addColorStop(1, '#e8e8e8');
+                    ctx.fillStyle = treadGrad;
+                    ctx.fillRect(x, topY - d, w, d);
+                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                    ctx.fillRect(x + 2, topY - d + 1, w - 4, 2);
+                    // 立面也亮一些
                     const riserGrad = ctx.createLinearGradient(x, topY, x, topY + h);
-                    riserGrad.addColorStop(0, '#c8c4bc'); riserGrad.addColorStop(0.5, '#b5b1aa'); riserGrad.addColorStop(1, '#a09c96');
-                    ctx.fillStyle = riserGrad; ctx.fillRect(x, topY, w, h);
-                    ctx.fillStyle = 'rgba(30,25,40,0.3)'; ctx.fillRect(x + 3, topY + h - 2, w - 6, 2);
-                    ctx.fillStyle = 'rgba(160,155,180,0.25)';
+                    riserGrad.addColorStop(0, '#e0e0e0');
+                    riserGrad.addColorStop(0.5, '#d0d0d0');
+                    riserGrad.addColorStop(1, '#b8b8b8');
+                    ctx.fillStyle = riserGrad;
+                    ctx.fillRect(x, topY, w, h);
+                    ctx.fillStyle = 'rgba(50,50,50,0.2)';
+                    ctx.fillRect(x + 3, topY + h - 2, w - 6, 2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
                     ctx.fillRect(x - 2, topY - d + 2, 2.5, h + d - 4);
                     ctx.fillRect(x + w - 0.5, topY - d + 2, 2.5, h + d - 4);
                     const shadowGrad = ctx.createLinearGradient(x, topY + h, x, topY + h + 16);
                     shadowGrad.addColorStop(0, 'rgba(40,35,55,0.35)'); shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                    ctx.fillStyle = shadowGrad; ctx.fillRect(x - 8, topY + h, w + 16, 16);
+                    ctx.fillStyle = shadowGrad;
+                    ctx.fillRect(x - 8, topY + h, w + 16, 16);
                 }
             }
 
@@ -665,22 +718,23 @@
                 const timeSlow = Date.now() * 0.0003;
                 const nebulaAlpha = 0.04 + sin(timeSlow * 0.7) * 0.012;
                 const nebulaGrad1 = ctx.createRadialGradient(GAME_W * 0.35, GAME_H * 0.3, 40, GAME_W * 0.35, GAME_H * 0.3, 280);
-                nebulaGrad1.addColorStop(0, `rgba(100,120,180,${nebulaAlpha})`);
-                nebulaGrad1.addColorStop(0.5, `rgba(60,70,140,${nebulaAlpha*0.5})`);
+                nebulaGrad1.addColorStop(0, `rgba(120,140,200,${nebulaAlpha})`);
+                nebulaGrad1.addColorStop(0.5, `rgba(80,90,160,${nebulaAlpha*0.5})`);
                 nebulaGrad1.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = nebulaGrad1; ctx.fillRect(0, 0, GAME_W, GAME_H);
                 const nebulaGrad2 = ctx.createRadialGradient(GAME_W * 0.6, GAME_H * 0.55, 30, GAME_W * 0.6, GAME_H * 0.55, 250);
-                nebulaGrad2.addColorStop(0, `rgba(140,120,180,${nebulaAlpha*0.8})`);
-                nebulaGrad2.addColorStop(0.6, `rgba(80,60,130,${nebulaAlpha*0.35})`);
+                nebulaGrad2.addColorStop(0, `rgba(160,140,200,${nebulaAlpha*0.8})`);
+                nebulaGrad2.addColorStop(0.6, `rgba(100,80,150,${nebulaAlpha*0.35})`);
                 nebulaGrad2.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = nebulaGrad2; ctx.fillRect(0, 0, GAME_W, GAME_H);
                 const centralGlow = ctx.createRadialGradient(GAME_W / 2, GAME_H / 2, STEP_WIDTH * 0.2, GAME_W / 2, GAME_H / 2, STEP_WIDTH * 0.95);
                 const centralAlpha = 0.03 + sin(timeSlow * 0.5 + 1) * 0.008;
-                centralGlow.addColorStop(0, `rgba(200,190,220,${centralAlpha})`);
-                centralGlow.addColorStop(0.4, `rgba(140,130,170,${centralAlpha*0.5})`);
-                centralGlow.addColorStop(0.75, `rgba(80,70,110,${centralAlpha*0.2})`);
+                centralGlow.addColorStop(0, `rgba(220,210,240,${centralAlpha})`);
+                centralGlow.addColorStop(0.4, `rgba(160,150,190,${centralAlpha*0.5})`);
+                centralGlow.addColorStop(0.75, `rgba(100,90,130,${centralAlpha*0.2})`);
                 centralGlow.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = centralGlow; ctx.fillRect(0, 0, GAME_W, GAME_H);
+                // 星光
                 const starSeed = 42; const time = Date.now() * 0.0008;
                 for (let i = 0; i < 55; i++) {
                     const sx = ((i * 137 + starSeed) % GAME_W), sy = ((i * 251 + starSeed * 3) % GAME_H);
@@ -689,19 +743,24 @@
                     const starAlpha = twinkle * (0.3 + (i % 4) * 0.15);
                     let starColor;
                     switch (i % 6) {
-                        case 0: starColor = '#f8f4ff'; break;
-                        case 1: starColor = '#ffe8d0'; break;
-                        case 2: starColor = '#d0d8ff'; break;
-                        case 3: starColor = '#f0e8ff'; break;
-                        case 4: starColor = '#ffe0f0'; break;
+                        case 0: starColor = '#ffffff'; break;
+                        case 1: starColor = '#f0f0ff'; break;
+                        case 2: starColor = '#ffffff'; break;
+                        case 3: starColor = '#f0f0ff'; break;
+                        case 4: starColor = '#ffffff'; break;
                         default: starColor = '#e0f0ff';
                     }
                     ctx.globalAlpha = starAlpha; ctx.fillStyle = starColor; ctx.fillRect(sx, sy, starSize, starSize);
                     if (starSize > 2) { ctx.globalAlpha = starAlpha * 0.3; ctx.fillRect(sx - 1, sy - 1, starSize + 2, starSize + 2); }
                 }
                 ctx.globalAlpha = 1;
+                // 绘制漂浮光点
                 for (const lp of lightPoints) lp.draw(ctx);
+                // 绘制全局数学公式
                 for (const p of formulaParticles) p.draw(ctx);
+                // 绘制楼梯区域专用粒子
+                for (const p of stairParticles) p.draw(ctx);
+                // 雾气
                 const mistGrad = ctx.createLinearGradient(0, GAME_H - 120, 0, GAME_H);
                 mistGrad.addColorStop(0, 'rgba(40,35,60,0)'); mistGrad.addColorStop(0.5, 'rgba(40,35,60,0.06)');
                 mistGrad.addColorStop(1, 'rgba(30,25,50,0.12)');
@@ -801,7 +860,7 @@
             init(); gameLoop();
             window.addEventListener('resize', resizeCanvas);
             document.addEventListener('touchmove', function(e) { if (e.target.closest('canvas')) e.preventDefault(); }, { passive: false });
-            console.log('✨ 佑佑与无尽阶梯 - 梦境像素小游戏已就绪 (狗狗动作更快)');
+            console.log('✨ 佑佑与无尽阶梯 - 梦境像素小游戏已就绪 (视觉升级)');
         })();
     </script>
 </body>
