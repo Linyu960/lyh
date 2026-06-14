@@ -93,9 +93,28 @@
             }
 
             let clickRipples = [];
-            function addClickRipple(gameX, gameY, color = '#f0d890') { clickRipples.push({ x: gameX, y: gameY, radius: 2, maxRadius: 28 + random() * 18, life: 1, decay: 0.025 + random() * 0.02, color, glowColor: color === '#f0d890' ? '#ffe8b0' : '#ffd0d8' }); if (clickRipples.length > 12) clickRipples.shift(); }
+            function addClickRipple(gameX, gameY) { clickRipples.push({ x: gameX, y: gameY, radius: 2, maxRadius: 28 + random() * 18, life: 1, decay: 0.025 + random() * 0.02 }); if (clickRipples.length > 12) clickRipples.shift(); }
             function updateClickRipples() { for (let i = clickRipples.length - 1; i >= 0; i--) { const r = clickRipples[i]; r.radius += (r.maxRadius - r.radius) * 0.15; r.life -= r.decay; if (r.life <= 0) clickRipples.splice(i, 1); } }
-            function drawClickRipples(ctx) { for (const r of clickRipples) { const alpha = r.life; ctx.globalAlpha = alpha * 0.35; ctx.strokeStyle = r.glowColor; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(r.x, r.y, r.radius, 0, PI * 2); ctx.stroke(); ctx.globalAlpha = alpha * 0.55; ctx.strokeStyle = r.color; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(r.x, r.y, r.radius * 0.55, 0, PI * 2); ctx.stroke(); ctx.globalAlpha = alpha * 0.8; ctx.fillStyle = r.color; ctx.beginPath(); ctx.arc(r.x, r.y, 2.5, 0, PI * 2); ctx.fill(); } ctx.globalAlpha = 1; }
+            function drawClickRipples(ctx) {
+                for (const r of clickRipples) {
+                    const alpha = r.life;
+                    // 最外圈 - 粉色
+                    ctx.globalAlpha = alpha * 0.35;
+                    ctx.strokeStyle = '#ffb8c8';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath(); ctx.arc(r.x, r.y, r.radius, 0, PI * 2); ctx.stroke();
+                    // 第二圈 - 蓝色
+                    ctx.globalAlpha = alpha * 0.55;
+                    ctx.strokeStyle = '#88a8e0';
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath(); ctx.arc(r.x, r.y, r.radius * 0.65, 0, PI * 2); ctx.stroke();
+                    // 内圈 - 白色
+                    ctx.globalAlpha = alpha * 0.8;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath(); ctx.arc(r.x, r.y, 2.5, 0, PI * 2); ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+            }
 
             const keys = {}; let actionPressed = false, actionJustPressed = false;
             window.addEventListener('keydown', (e) => { keys[e.key] = true; if (e.key === ' ' || e.key === 'Enter' || e.key === 'e' || e.key === 'E') { if (!actionPressed) actionJustPressed = true; actionPressed = true; e.preventDefault(); } if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault(); });
@@ -172,10 +191,10 @@
 
             function update() { updatePlayer(); updateDialogue(); updateDogJump(); updateHeartParticles(); updateClickRipples(); for (const p of formulaParticles) p.update(); for (const p of stairParticles) p.update(); for (const lp of lightPoints) lp.update(); if (gameState === STATE.EXPLORING && dogApproachPhase < 3) checkDogEncounter(); if (gameState === STATE.DIALOGUE && isActionJust()) advanceDialogue(); if (gameState === STATE.FINISHED && isActionJust() && dogJumpPhase === 0) { spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 20); playDogBark(); startDialogue([ { speaker: '佑佑', text: '妈妈，我们再也不分开了好吗？' }, { speaker: '缪缪', text: '嗯，永远不分开了。' } ]); } }
 
-            canvas.addEventListener('pointerdown', function(e) { e.preventDefault(); const coords = screenToGameCoords(e.clientX, e.clientY); const gameX = coords.x, gameY = coords.y; if (gameState === STATE.DIALOGUE) { advanceDialogue(); addClickRipple(gameX, gameY, '#d0d8ff'); return; } if (gameState === STATE.DOG_APPROACH) { if (dogJumpPhase === 2) addClickRipple(gameX, gameY, '#ffe8b0'); return; } const dogPos = getDogScreenPosition(); let clickedDog = false; if (dogPos && dogVisible) { const dogClickRadius = 42; const dx = gameX - dogPos.x, dy = gameY - dogPos.y; if (Math.sqrt(dx * dx + dy * dy) < dogClickRadius) clickedDog = true; } if (clickedDog) { addClickRipple(dogPos.x, dogPos.y, '#ffe8b0'); if (gameState === STATE.FINISHED) { spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 20); playDogBark(); startDialogue([ { speaker: '佑佑', text: '妈妈，我们再也不分开了好吗？' }, { speaker: '缪缪', text: '嗯，永远不分开了。' } ]); } else if (dogApproachPhase >= 2 && dogJumpPhase === 0) { spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 20); playDogBark(); startDialogue([ { speaker: '佑佑', text: '妈妈，我们再也不分开了好吗？' }, { speaker: '缪缪', text: '嗯，永远不分开了。' } ]); } else if (dogApproachPhase < 2 && gameState === STATE.EXPLORING) { dogApproachPhase = 1; dogApproachTimer = 0; targetStepIndex = getCurrentDogStep(); targetX = dogX; hasTarget = true; } return; } const stepIndexFloat = playerStepIndex + (gameY - GAME_H / 2 + worldOffsetY) / STEP_HEIGHT; const nearestStep = Math.round(stepIndexFloat); let clampedX = Math.max(STEP_X + 12, Math.min(STEP_RIGHT - 12, gameX)); const clampedStep = Math.max(-50, Math.min(INITIAL_PLAYER_STEP + 1, nearestStep)); targetX = clampedX; targetStepIndex = clampedStep; hasTarget = true; addClickRipple(clampedX, worldStepToScreenY(clampedStep), '#f0d890'); });
+            canvas.addEventListener('pointerdown', function(e) { e.preventDefault(); const coords = screenToGameCoords(e.clientX, e.clientY); const gameX = coords.x, gameY = coords.y; if (gameState === STATE.DIALOGUE) { advanceDialogue(); addClickRipple(gameX, gameY); return; } if (gameState === STATE.DOG_APPROACH) { if (dogJumpPhase === 2) addClickRipple(gameX, gameY); return; } const dogPos = getDogScreenPosition(); let clickedDog = false; if (dogPos && dogVisible) { const dogClickRadius = 42; const dx = gameX - dogPos.x, dy = gameY - dogPos.y; if (Math.sqrt(dx * dx + dy * dy) < dogClickRadius) clickedDog = true; } if (clickedDog) { addClickRipple(dogPos.x, dogPos.y); if (gameState === STATE.FINISHED) { spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 20); playDogBark(); startDialogue([ { speaker: '佑佑', text: '妈妈，我们再也不分开了好吗？' }, { speaker: '缪缪', text: '嗯，永远不分开了。' } ]); } else if (dogApproachPhase >= 2 && dogJumpPhase === 0) { spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 20); playDogBark(); startDialogue([ { speaker: '佑佑', text: '妈妈，我们再也不分开了好吗？' }, { speaker: '缪缪', text: '嗯，永远不分开了。' } ]); } else if (dogApproachPhase < 2 && gameState === STATE.EXPLORING) { dogApproachPhase = 1; dogApproachTimer = 0; targetStepIndex = getCurrentDogStep(); targetX = dogX; hasTarget = true; } return; } const stepIndexFloat = playerStepIndex + (gameY - GAME_H / 2 + worldOffsetY) / STEP_HEIGHT; const nearestStep = Math.round(stepIndexFloat); let clampedX = Math.max(STEP_X + 12, Math.min(STEP_RIGHT - 12, gameX)); const clampedStep = Math.max(-50, Math.min(INITIAL_PLAYER_STEP + 1, nearestStep)); targetX = clampedX; targetStepIndex = clampedStep; hasTarget = true; addClickRipple(clampedX, worldStepToScreenY(clampedStep)); });
             canvas.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
-            // 绘制樱花粉色光门（只替换金色部分为樱花粉）
+            // 绘制樱花粉色光门
             function drawLightSource() {
                 const lx = GAME_W / 2;
                 const stepScreenY = worldStepToScreenY(LIGHT_SOURCE_STEP);
@@ -186,7 +205,6 @@
                 const doorHeight = doorBottomY - doorTopY;
                 const left = lx - doorWidth / 2;
 
-                // 外层柔光（樱花粉色）
                 ctx.globalCompositeOperation = 'lighter';
                 const outerGlow = ctx.createLinearGradient(0, doorBottomY, 0, doorTopY);
                 outerGlow.addColorStop(0, 'rgba(255, 180, 200, 0.5)');
@@ -196,7 +214,6 @@
                 ctx.fillStyle = outerGlow;
                 ctx.fillRect(left - 80, doorTopY - 35, doorWidth + 160, doorHeight + 70);
 
-                // 内层光芒（粉色范围更大，淡粉色更浅）
                 const innerGlow = ctx.createLinearGradient(0, doorBottomY, 0, doorTopY);
                 innerGlow.addColorStop(0, '#fff5f7');
                 innerGlow.addColorStop(0.15, '#fff0f4');
@@ -206,7 +223,6 @@
                 ctx.fillStyle = innerGlow;
                 ctx.fillRect(left, doorTopY, doorWidth, doorHeight);
 
-                // 中心高亮区（更大更白的核心光，带极淡粉色）
                 const coreGlow = ctx.createLinearGradient(0, doorBottomY, 0, doorTopY);
                 coreGlow.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
                 coreGlow.addColorStop(0.3, 'rgba(255, 252, 253, 0.7)');
@@ -214,11 +230,9 @@
                 coreGlow.addColorStop(1, 'rgba(255, 235, 240, 0)');
                 ctx.fillStyle = coreGlow;
                 ctx.fillRect(left, doorTopY, doorWidth, doorHeight);
-                
                 ctx.globalCompositeOperation = 'source-over';
             }
 
-            // 绘制阶梯（不绘制光源以上的阶梯）
             function drawStaircase() {
                 const lightScreenY = worldStepToScreenY(LIGHT_SOURCE_STEP);
                 const centerStep = playerStepIndex;
@@ -358,87 +372,32 @@
             }
 
             function drawBackground() {
-                // 夜空黑色背景
                 const bgGrad = ctx.createLinearGradient(0, 0, 0, GAME_H);
-                bgGrad.addColorStop(0, '#020106');
-                bgGrad.addColorStop(0.4, '#04020c');
-                bgGrad.addColorStop(0.7, '#05030e');
-                bgGrad.addColorStop(1, '#030108');
-                ctx.fillStyle = bgGrad;
-                ctx.fillRect(0, 0, GAME_W, GAME_H);
-                
+                bgGrad.addColorStop(0, '#020106'); bgGrad.addColorStop(0.4, '#04020c');
+                bgGrad.addColorStop(0.7, '#05030e'); bgGrad.addColorStop(1, '#030108');
+                ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, GAME_W, GAME_H);
                 const timeSlow = Date.now() * 0.0003;
-                
                 const nebulaAlpha = 0.025 + sin(timeSlow * 0.7) * 0.008;
                 const nebulaGrad1 = ctx.createRadialGradient(GAME_W * 0.35, GAME_H * 0.3, 40, GAME_W * 0.35, GAME_H * 0.3, 280);
                 nebulaGrad1.addColorStop(0, `rgba(60, 50, 80, ${nebulaAlpha})`);
                 nebulaGrad1.addColorStop(0.5, `rgba(40, 30, 60, ${nebulaAlpha * 0.5})`);
                 nebulaGrad1.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = nebulaGrad1;
-                ctx.fillRect(0, 0, GAME_W, GAME_H);
-                
-                const nebulaGrad2 = ctx.createRadialGradient(GAME_W * 0.6, GAME_H * 0.55, 30, GAME_W * 0.6, GAME_H * 0.55, 250);
-                nebulaGrad2.addColorStop(0, `rgba(70, 55, 90, ${nebulaAlpha * 0.7})`);
-                nebulaGrad2.addColorStop(0.6, `rgba(45, 35, 65, ${nebulaAlpha * 0.3})`);
-                nebulaGrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = nebulaGrad2;
-                ctx.fillRect(0, 0, GAME_W, GAME_H);
-                
-                const centralGlow = ctx.createRadialGradient(GAME_W / 2, GAME_H / 2, STEP_WIDTH * 0.2, GAME_W / 2, GAME_H / 2, STEP_WIDTH * 0.95);
-                const centralAlpha = 0.02 + sin(timeSlow * 0.5 + 1) * 0.005;
-                centralGlow.addColorStop(0, `rgba(180, 160, 140, ${centralAlpha})`);
-                centralGlow.addColorStop(0.4, `rgba(120, 100, 80, ${centralAlpha * 0.4})`);
-                centralGlow.addColorStop(0.75, `rgba(60, 45, 30, ${centralAlpha * 0.15})`);
-                centralGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = centralGlow;
-                ctx.fillRect(0, 0, GAME_W, GAME_H);
-                
-                const starSeed = 42;
-                const time = Date.now() * 0.0008;
+                ctx.fillStyle = nebulaGrad1; ctx.fillRect(0, 0, GAME_W, GAME_H);
+                const starSeed = 42; const time = Date.now() * 0.0008;
                 for (let i = 0; i < 55; i++) {
-                    const sx = ((i * 137 + starSeed) % GAME_W);
-                    const sy = ((i * 251 + starSeed * 3) % GAME_H);
+                    const sx = ((i * 137 + starSeed) % GAME_W), sy = ((i * 251 + starSeed * 3) % GAME_H);
                     const starSize = (i % 5 === 0) ? 2.5 : (i % 7 === 0 ? 1.2 : 1.8);
                     const twinkle = sin(time + i * 0.7) * 0.4 + 0.6;
-                    const starAlpha = twinkle * (0.25 + (i % 4) * 0.12);
-                    let starColor;
-                    switch (i % 6) {
-                        case 0: starColor = '#fffef8'; break;
-                        case 1: starColor = '#fffef5'; break;
-                        case 2: starColor = '#fffffa'; break;
-                        case 3: starColor = '#fffdf0'; break;
-                        case 4: starColor = '#fffef8'; break;
-                        default: starColor = '#faf8f0';
-                    }
-                    ctx.globalAlpha = starAlpha;
-                    ctx.fillStyle = starColor;
-                    ctx.fillRect(sx, sy, starSize, starSize);
-                    if (starSize > 2) {
-                        ctx.globalAlpha = starAlpha * 0.3;
-                        ctx.fillRect(sx - 1, sy - 1, starSize + 2, starSize + 2);
-                    }
+                    ctx.globalAlpha = twinkle * (0.25 + (i % 4) * 0.12);
+                    ctx.fillStyle = '#fffef5'; ctx.fillRect(sx, sy, starSize, starSize);
                 }
                 ctx.globalAlpha = 1;
-                
                 for (const lp of lightPoints) lp.draw(ctx);
                 for (const p of formulaParticles) p.draw(ctx);
                 for (const p of stairParticles) p.draw(ctx);
-                
-                const mistGrad = ctx.createLinearGradient(0, GAME_H - 120, 0, GAME_H);
-                mistGrad.addColorStop(0, 'rgba(20, 18, 25, 0)');
-                mistGrad.addColorStop(0.5, 'rgba(20, 18, 25, 0.05)');
-                mistGrad.addColorStop(1, 'rgba(15, 12, 20, 0.1)');
-                ctx.fillStyle = mistGrad;
-                ctx.fillRect(0, GAME_H - 120, GAME_W, 120);
-                
-                const topMistGrad = ctx.createLinearGradient(0, 0, 0, 100);
-                topMistGrad.addColorStop(0, 'rgba(10, 8, 15, 0.08)');
-                topMistGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = topMistGrad;
-                ctx.fillRect(0, 0, GAME_W, 100);
             }
 
-            function drawDogGlowHint(dogPos) { if (!dogPos || !dogVisible) return; if (gameState === STATE.DIALOGUE) return; if (dogJumpPhase >= 2) return; const time = Date.now() * 0.003; const pulse = sin(time) * 0.35 + 0.65; const alpha = pulse * 0.5; const glowGrad = ctx.createRadialGradient(dogPos.x, dogPos.y, 8, dogPos.x, dogPos.y, 34); glowGrad.addColorStop(0, `rgba(255,220,180,${alpha*0.6})`); glowGrad.addColorStop(0.5, `rgba(255,200,150,${alpha*0.25})`); glowGrad.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = glowGrad; ctx.beginPath(); ctx.arc(dogPos.x, dogPos.y, 34, 0, PI * 2); ctx.fill(); const dotAlpha = pulse * 0.7; ctx.fillStyle = `rgba(255,240,210,${dotAlpha})`; ctx.beginPath(); ctx.arc(dogPos.x, dogPos.y - 8, 3, 0, PI * 2); ctx.fill(); }
+            function drawDogGlowHint(dogPos) { if (!dogPos || !dogVisible) return; if (gameState === STATE.DIALOGUE) return; if (dogJumpPhase >= 2) return; const time = Date.now() * 0.003; const pulse = sin(time) * 0.35 + 0.65; const alpha = pulse * 0.5; const glowGrad = ctx.createRadialGradient(dogPos.x, dogPos.y, 8, dogPos.x, dogPos.y, 34); glowGrad.addColorStop(0, `rgba(255,220,180,${alpha*0.6})`); glowGrad.addColorStop(0.5, `rgba(255,200,150,${alpha*0.25})`); glowGrad.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = glowGrad; ctx.beginPath(); ctx.arc(dogPos.x, dogPos.y, 34, 0, PI * 2); ctx.fill(); }
 
             function drawDialogueBox() {
                 if (gameState !== STATE.DIALOGUE && dialogueText === '') return;
@@ -461,7 +420,7 @@
                 for (let i = 0; i < Math.min(lines.length, 2); i++) ctx.fillText(lines[i], textX, textY + i * 22);
             }
 
-            function wrapText(ctx, text, maxWidth) { const lines = []; let currentLine = ''; for (let i = 0; i < text.length; i++) { const char = text[i], testLine = currentLine + char; if (ctx.measureText(testLine).width > maxWidth && currentLine.length > 0) { lines.push(currentLine); currentLine = char; } else currentLine = testLine; } if (currentLine) lines.push(currentLine); return lines; }
+            function wrapText(ctx, text, maxWidth) { const lines = []; let cur = ''; for (const ch of text) { const t = cur + ch; if (ctx.measureText(t).width > maxWidth && cur.length > 0) { lines.push(cur); cur = ch; } else cur = t; } if (cur) lines.push(cur); return lines; }
 
             function drawScene() {
                 ctx.clearRect(0, 0, GAME_W, GAME_H);
@@ -470,14 +429,13 @@
                 drawLightSource();
                 const dogPos = getDogScreenPosition();
                 if (dogPos && dogVisible) { drawDogGlowHint(dogPos); drawPixelDog(dogPos.x, dogPos.y, 1.1); }
-                const playerScreenX = getPlayerScreenX(), playerScreenY = getPlayerScreenY();
-                drawPixelCharacter(playerScreenX, playerScreenY, 1);
+                drawPixelCharacter(getPlayerScreenX(), getPlayerScreenY(), 1);
                 drawHeartParticles(ctx); drawClickRipples(ctx);
-                if (dogJumpPhase === 2 && dogPos) { drawPixelDog(dogPos.x, dogPos.y, 1.1); if (random() < 0.5) { const lickX = playerScreenX + (random()-0.5)*10, lickY = playerScreenY - 14 + (random()-0.5)*6; ctx.fillStyle = 'rgba(255,200,210,0.7)'; ctx.fillRect(lickX, lickY, 2, 2); } }
+                if (dogJumpPhase === 2 && dogPos) { drawPixelDog(dogPos.x, dogPos.y, 1.1); if (random() < 0.5) { const lx = getPlayerScreenX() + (random()-0.5)*10, ly = getPlayerScreenY() - 14 + (random()-0.5)*6; ctx.fillStyle = 'rgba(255,200,210,0.7)'; ctx.fillRect(lx, ly, 2, 2); } }
                 drawDialogueBox();
-                const vignetteGrad = ctx.createRadialGradient(GAME_W/2, GAME_H/2, GAME_W*0.5, GAME_W/2, GAME_H/2, GAME_W*0.82);
-                vignetteGrad.addColorStop(0,'rgba(0,0,0,0)'); vignetteGrad.addColorStop(0.6,'rgba(0,0,0,0.08)'); vignetteGrad.addColorStop(1,'rgba(0,0,0,0.5)');
-                ctx.fillStyle = vignetteGrad; ctx.fillRect(0,0,GAME_W,GAME_H);
+                const vignette = ctx.createRadialGradient(GAME_W/2, GAME_H/2, GAME_W*0.5, GAME_W/2, GAME_H/2, GAME_W*0.82);
+                vignette.addColorStop(0,'rgba(0,0,0,0)'); vignette.addColorStop(0.6,'rgba(0,0,0,0.08)'); vignette.addColorStop(1,'rgba(0,0,0,0.5)');
+                ctx.fillStyle = vignette; ctx.fillRect(0,0,GAME_W,GAME_H);
             }
 
             function gameLoop() { update(); drawScene(); requestAnimationFrame(gameLoop); }
@@ -486,7 +444,7 @@
             init(); gameLoop();
             window.addEventListener('resize', resizeCanvas);
             document.addEventListener('touchmove', function(e) { if (e.target.closest('canvas')) e.preventDefault(); }, { passive: false });
-            console.log('✨ 佑佑与无尽阶梯 - 梦境 (樱花光门)');
+            console.log('✨ 佑佑与无尽阶梯 - 梦境');
         })();
     </script>
 </body>
