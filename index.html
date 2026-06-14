@@ -548,9 +548,7 @@
                     riserGrad.addColorStop(1, '#c8c8c8');
                     ctx.fillStyle = riserGrad; ctx.fillRect(x, topY, w, h);
                     ctx.fillStyle = 'rgba(50,50,50,0.15)'; ctx.fillRect(x + 3, topY + h - 2, w - 6, 2);
-                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-                    ctx.fillRect(x - 2, topY - d + 2, 2.5, h + d - 4);
-                    ctx.fillRect(x + w - 0.5, topY - d + 2, 2.5, h + d - 4);
+                    // 去掉了两侧的竖线
                     const shadowGrad = ctx.createLinearGradient(x, topY + h, x, topY + h + 16);
                     shadowGrad.addColorStop(0, 'rgba(40,35,55,0.35)'); shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
                     ctx.fillStyle = shadowGrad; ctx.fillRect(x - 8, topY + h, w + 16, 16);
@@ -807,7 +805,7 @@
             init(); gameLoop();
             window.addEventListener('resize', resizeCanvas);
             document.addEventListener('touchmove', function(e) { if (e.target.closest('canvas')) e.preventDefault(); }, { passive: false });
-            console.log('✨ 佑佑与无尽阶梯 - 梦境像素小游戏已就绪 (阶梯更白)');
+            console.log('✨ 佑佑与无尽阶梯 - 梦境像素小游戏已就绪 (两侧竖线已移除)');
         })();
     </script>
 </body>
