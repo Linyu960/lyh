@@ -27,7 +27,6 @@
             aspect-ratio: 480 / 750; object-fit: contain;
             touch-action: manipulation; cursor: pointer; -webkit-tap-highlight-color: transparent;
         }
-        .mobile-controls { display: none; }
         @media (max-width: 768px), (hover: none) and (pointer: coarse) {
             canvas {
                 max-height: none !important; max-width: none !important;
@@ -72,7 +71,7 @@
             resizeCanvas();
             ctx.imageSmoothingEnabled = false;
 
-            // ==================== 音效系统（修复手机无声） ====================
+            // ==================== 音效系统 ====================
             let audioCtx = null;
             function initAudio() {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -202,7 +201,7 @@
             function isActionJust() { const r = actionJustPressed || mobileActionJust; actionJustPressed = false; mobileActionJust = false; return r; }
             function isAnyKeyPressed() { return isUp() || isDown() || isLeft() || isRight(); }
 
-            // ==================== 粒子系统（保持不变） ====================
+            // ==================== 粒子系统 ====================
             const formulaTexts = [
                 'E=mc²', '∫f(x)dx', '√-1', 'π≈3.1415', 'Σ∞', '∂/∂x',
                 'lim→∞', 'i²=-1', '∇·F', 'Δx→0', 'e^iπ+1=0', 'ℵ',
@@ -369,7 +368,7 @@
             const lightPoints = [];
             for (let i = 0; i < 35; i++) lightPoints.push(new LightPoint());
 
-            // ==================== 阶梯系统（速度已优化） ====================
+            // ==================== 阶梯系统 ====================
             const STEP_HEIGHT = 28, STEP_DEPTH = 18, STEP_WIDTH = 160;
             const STEP_X = (GAME_W - STEP_WIDTH) / 2, STEP_RIGHT = STEP_X + STEP_WIDTH;
 
@@ -524,7 +523,7 @@
             });
             canvas.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
-            // ==================== 绘制函数（三玖形象） ====================
+            // ==================== 绘制函数 ====================
             function drawStaircase() {
                 const centerStep = playerStepIndex;
                 const visibleSteps = 24;
@@ -560,58 +559,74 @@
                 ctx.fillStyle = footGlow; ctx.fillRect(cx - 10 * s, cy + 14 * s, 20 * s, 10 * s);
                 ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(cx - 6 * s, cy + 20 * s, 12 * s, 2.5 * s);
                 if (playerFacing === 'down') {
-                    // 三玖形象 down
-                    ctx.fillStyle = '#3a2a2a'; ctx.fillRect(cx-7*s, cy+18*s, 6*s, 4*s); ctx.fillRect(cx+1*s, cy+18*s, 6*s, 4*s);
-                    ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-6*s, cy+13*s, 5*s, 6*s); ctx.fillRect(cx+1*s, cy+13*s, 5*s, 6*s);
-                    ctx.fillStyle = '#2a3a5a'; ctx.fillRect(cx-8*s, cy+8*s, 16*s, 6*s);
-                    ctx.fillStyle = '#1e2e4a'; ctx.fillRect(cx-8*s, cy+2*s, 16*s, 7*s);
-                    ctx.fillStyle = '#f0f0f0'; ctx.fillRect(cx-2*s, cy+1*s, 4*s, 3*s);
-                    ctx.fillStyle = '#6a8ab0'; ctx.fillRect(cx-1*s, cy+3*s, 2*s, 5*s);
-                    ctx.fillStyle = '#fce8db'; ctx.fillRect(cx-2*s, cy-2*s, 4*s, 4*s);
-                    ctx.fillStyle = '#fef0e6'; ctx.fillRect(cx-7*s, cy-14*s, 14*s, 13*s);
-                    ctx.fillStyle = '#6b3a2a'; ctx.fillRect(cx-7*s, cy-15*s, 14*s, 3*s); ctx.fillRect(cx-6*s, cy-16*s, 13*s, 2*s); ctx.fillRect(cx+3*s, cy-13*s, 5*s, 3*s);
-                    ctx.fillStyle = '#5a2a1a'; ctx.fillRect(cx-9*s, cy-14*s, 3*s, 16*s); ctx.fillRect(cx+6*s, cy-14*s, 3*s, 16*s);
-                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx-9*s, cy-10*s, 2*s, 6*s); ctx.fillRect(cx+7*s, cy-10*s, 2*s, 6*s);
-                    ctx.fillStyle = '#222'; ctx.fillRect(cx-8*s, cy-16*s, 16*s, 2*s);
-                    ctx.fillStyle = '#2a1e1e'; ctx.fillRect(cx-2*s, cy-7*s, 3*s, 2*s);
-                    ctx.fillStyle = '#8a6040'; ctx.fillRect(cx-1*s, cy-7*s, 2*s, 2*s);
-                    ctx.fillStyle = '#ffffff'; ctx.fillRect(cx-2*s, cy-7*s, 1*s, 1*s);
-                    ctx.fillStyle = '#e8908a'; ctx.fillRect(cx-1*s, cy-2*s, 2*s, 1*s);
-                    ctx.fillStyle = 'rgba(255,140,140,0.35)'; ctx.fillRect(cx-5*s, cy-4*s, 2*s, 2*s); ctx.fillRect(cx+3*s, cy-4*s, 2*s, 2*s);
+                    ctx.fillStyle = '#2a2e3a'; ctx.fillRect(cx-6*s, cy+19*s, 5*s, 3*s); ctx.fillRect(cx+1*s, cy+19*s, 5*s, 3*s);
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(cx-4*s, cy+15*s, 3*s, 5*s); ctx.fillRect(cx+1*s, cy+15*s, 3*s, 5*s);
+                    ctx.fillStyle = '#fce8db'; ctx.fillRect(cx-4*s, cy+12*s, 3*s, 4*s); ctx.fillRect(cx+1*s, cy+12*s, 3*s, 4*s);
+                    ctx.fillStyle = '#3355aa'; ctx.fillRect(cx-8*s, cy+8*s, 16*s, 5*s);
+                    ctx.fillStyle = '#2244aa'; for (let i=cx-5*s; i<=cx+3*s; i+=3*s) ctx.fillRect(i, cy+9*s, 1*s, 3*s);
+                    ctx.fillStyle = '#f5f5f8'; ctx.fillRect(cx-6*s, cy+2*s, 12*s, 7*s);
+                    ctx.fillStyle = '#3355aa'; ctx.fillRect(cx-2*s, cy+3*s, 4*s, 3*s); ctx.fillStyle = '#5577cc'; ctx.fillRect(cx-1*s, cy+3*s, 2*s, 3*s);
+                    ctx.fillStyle = '#3355aa'; ctx.fillRect(cx-8*s, cy+2*s, 3*s, 7*s); ctx.fillRect(cx+5*s, cy+2*s, 3*s, 7*s);
+                    ctx.fillStyle = '#fce8db'; ctx.fillRect(cx-9*s, cy+3*s, 2*s, 6*s); ctx.fillRect(cx+7*s, cy+3*s, 2*s, 6*s);
+                    ctx.fillStyle = '#fce8db'; ctx.fillRect(cx-2*s, cy-1*s, 4*s, 4*s);
+                    ctx.fillStyle = '#fef0e6'; ctx.fillRect(cx-7*s, cy-15*s, 14*s, 15*s); ctx.fillRect(cx-8*s, cy-12*s, 2*s, 8*s); ctx.fillRect(cx+6*s, cy-12*s, 2*s, 8*s);
+                    ctx.fillRect(cx-6*s, cy-16*s, 12*s, 2*s); ctx.fillRect(cx-6*s, cy-1*s, 12*s, 2*s);
+                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx-8*s, cy-17*s, 16*s, 5*s); ctx.fillRect(cx-9*s, cy-15*s, 3*s, 23*s); ctx.fillRect(cx+6*s, cy-15*s, 3*s, 23*s);
+                    ctx.fillRect(cx-10*s, cy+7*s, 2*s, 3*s); ctx.fillRect(cx+8*s, cy+7*s, 2*s, 3*s);
+                    ctx.fillStyle = '#222222'; ctx.fillRect(cx-7*s, cy-14*s, 14*s, 3*s);
+                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx-6*s, cy-15*s, 12*s, 2*s); ctx.fillRect(cx+7*s, cy-3*s, 4*s, 3*s);
+                    ctx.fillStyle = '#222222'; ctx.fillRect(cx+8*s, cy-2*s, 3*s, 14*s);
+                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx+7*s, cy+7*s, 4*s, 6*s);
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(cx-4*s, cy-8*s, 3*s, 3*s); ctx.fillRect(cx+1*s, cy-8*s, 3*s, 3*s);
+                    ctx.fillStyle = '#2a1e1e'; ctx.fillRect(cx-3*s, cy-7*s, 2*s, 2*s); ctx.fillRect(cx+2*s, cy-7*s, 2*s, 2*s);
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(cx-3*s, cy-7*s, 1*s, 1*s); ctx.fillRect(cx+2*s, cy-7*s, 1*s, 1*s);
+                    ctx.fillStyle = '#e0c5b0'; ctx.fillRect(cx, cy-4*s, 1*s, 1*s);
+                    ctx.fillStyle = '#e8908a'; ctx.fillRect(cx-2*s, cy-2*s, 4*s, 1*s);
+                    ctx.fillStyle = 'rgba(255,140,140,0.35)'; ctx.fillRect(cx-6*s, cy-5*s, 2*s, 2*s); ctx.fillRect(cx+4*s, cy-5*s, 2*s, 2*s);
                 } else if (playerFacing === 'left') {
-                    ctx.fillStyle = '#3a2a2a'; ctx.fillRect(cx-6*s, cy+18*s, 6*s, 4*s); ctx.fillRect(cx+2*s, cy+18*s, 5*s, 4*s);
-                    ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-5*s, cy+13*s, 5*s, 6*s); ctx.fillRect(cx+2*s, cy+13*s, 4*s, 6*s);
-                    ctx.fillStyle = '#2a3a5a'; ctx.fillRect(cx-7*s, cy+8*s, 14*s, 6*s);
-                    ctx.fillStyle = '#1e2e4a'; ctx.fillRect(cx-7*s, cy+2*s, 14*s, 7*s);
-                    ctx.fillStyle = '#fef0e6'; ctx.fillRect(cx-6*s, cy-14*s, 12*s, 13*s);
-                    ctx.fillStyle = '#6b3a2a'; ctx.fillRect(cx-7*s, cy-15*s, 13*s, 3*s); ctx.fillRect(cx-6*s, cy-16*s, 10*s, 2*s);
-                    ctx.fillStyle = '#5a2a1a'; ctx.fillRect(cx-8*s, cy-14*s, 3*s, 16*s);
-                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx-9*s, cy-10*s, 2*s, 6*s); ctx.fillRect(cx+6*s, cy-10*s, 2*s, 6*s);
-                    ctx.fillStyle = '#222'; ctx.fillRect(cx-8*s, cy-16*s, 16*s, 2*s);
+                    ctx.fillStyle = '#2a2e3a'; ctx.fillRect(cx-5*s, cy+19*s, 5*s, 3*s); ctx.fillRect(cx+2*s, cy+19*s, 4*s, 3*s);
+                    ctx.fillStyle = '#fce8db'; ctx.fillRect(cx-3*s, cy+14*s, 3*s, 6*s); ctx.fillRect(cx+2*s, cy+14*s, 2*s, 6*s);
+                    ctx.fillStyle = '#3355aa'; ctx.fillRect(cx-6*s, cy+8*s, 12*s, 5*s);
+                    ctx.fillStyle = '#f5f5f8'; ctx.fillRect(cx-5*s, cy+2*s, 10*s, 7*s);
+                    ctx.fillStyle = '#3355aa'; ctx.fillRect(cx-5*s, cy+2*s, 2*s, 7*s); ctx.fillRect(cx+4*s, cy+2*s, 2*s, 7*s);
+                    ctx.fillStyle = '#fce8db'; ctx.fillRect(cx-7*s, cy+3*s, 2*s, 5*s); ctx.fillRect(cx+6*s, cy+3*s, 2*s, 5*s);
+                    ctx.fillStyle = '#fef0e6'; ctx.fillRect(cx-6*s, cy-14*s, 11*s, 14*s);
+                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx-7*s, cy-16*s, 13*s, 5*s); ctx.fillRect(cx-7*s, cy-14*s, 3*s, 22*s); ctx.fillRect(cx+4*s, cy-14*s, 2*s, 20*s);
+                    ctx.fillRect(cx+2*s, cy+5*s, 3*s, 10*s);
+                    ctx.fillStyle = '#222222'; ctx.fillRect(cx-6*s, cy-14*s, 11*s, 2*s);
+                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx+5*s, cy-3*s, 3*s, 3*s);
+                    ctx.fillStyle = '#222222'; ctx.fillRect(cx+6*s, cy-2*s, 2*s, 12*s);
                     ctx.fillStyle = '#2a1e1e'; ctx.fillRect(cx-2*s, cy-7*s, 2*s, 2*s);
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(cx-2*s, cy-7*s, 1*s, 1*s);
                     ctx.fillStyle = '#e8908a'; ctx.fillRect(cx-1*s, cy-3*s, 2*s, 1*s);
                 } else if (playerFacing === 'right') {
-                    ctx.fillStyle = '#3a2a2a'; ctx.fillRect(cx-6*s, cy+18*s, 6*s, 4*s); ctx.fillRect(cx+1*s, cy+18*s, 6*s, 4*s);
-                    ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-5*s, cy+13*s, 5*s, 6*s); ctx.fillRect(cx+1*s, cy+13*s, 5*s, 6*s);
-                    ctx.fillStyle = '#2a3a5a'; ctx.fillRect(cx-7*s, cy+8*s, 14*s, 6*s);
-                    ctx.fillStyle = '#1e2e4a'; ctx.fillRect(cx-7*s, cy+2*s, 14*s, 7*s);
-                    ctx.fillStyle = '#fef0e6'; ctx.fillRect(cx-6*s, cy-14*s, 12*s, 13*s);
-                    ctx.fillStyle = '#6b3a2a'; ctx.fillRect(cx-6*s, cy-15*s, 13*s, 3*s); ctx.fillRect(cx-5*s, cy-16*s, 10*s, 2*s);
-                    ctx.fillStyle = '#5a2a1a'; ctx.fillRect(cx+5*s, cy-14*s, 3*s, 16*s);
-                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx-9*s, cy-10*s, 2*s, 6*s); ctx.fillRect(cx+7*s, cy-10*s, 2*s, 6*s);
-                    ctx.fillStyle = '#222'; ctx.fillRect(cx-8*s, cy-16*s, 16*s, 2*s);
+                    ctx.fillStyle = '#2a2e3a'; ctx.fillRect(cx-6*s, cy+19*s, 5*s, 3*s); ctx.fillRect(cx+1*s, cy+19*s, 5*s, 3*s);
+                    ctx.fillStyle = '#fce8db'; ctx.fillRect(cx-4*s, cy+14*s, 3*s, 6*s); ctx.fillRect(cx+1*s, cy+14*s, 3*s, 6*s);
+                    ctx.fillStyle = '#3355aa'; ctx.fillRect(cx-6*s, cy+8*s, 12*s, 5*s);
+                    ctx.fillStyle = '#f5f5f8'; ctx.fillRect(cx-5*s, cy+2*s, 10*s, 7*s);
+                    ctx.fillStyle = '#3355aa'; ctx.fillRect(cx-5*s, cy+2*s, 2*s, 7*s); ctx.fillRect(cx+3*s, cy+2*s, 2*s, 7*s);
+                    ctx.fillStyle = '#fce8db'; ctx.fillRect(cx-7*s, cy+3*s, 2*s, 5*s); ctx.fillRect(cx+5*s, cy+3*s, 2*s, 5*s);
+                    ctx.fillStyle = '#fef0e6'; ctx.fillRect(cx-5*s, cy-14*s, 11*s, 14*s);
+                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx-6*s, cy-16*s, 13*s, 5*s); ctx.fillRect(cx+4*s, cy-14*s, 3*s, 22*s); ctx.fillRect(cx-6*s, cy-14*s, 2*s, 20*s);
+                    ctx.fillRect(cx-5*s, cy+5*s, 3*s, 10*s);
+                    ctx.fillStyle = '#222222'; ctx.fillRect(cx-5*s, cy-14*s, 11*s, 2*s);
+                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx-8*s, cy-3*s, 3*s, 3*s);
+                    ctx.fillStyle = '#222222'; ctx.fillRect(cx-8*s, cy-2*s, 2*s, 12*s);
                     ctx.fillStyle = '#2a1e1e'; ctx.fillRect(cx+1*s, cy-7*s, 2*s, 2*s);
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(cx+1*s, cy-7*s, 1*s, 1*s);
                     ctx.fillStyle = '#e8908a'; ctx.fillRect(cx-1*s, cy-3*s, 2*s, 1*s);
                 } else if (playerFacing === 'up') {
-                    ctx.fillStyle = '#3a2a2a'; ctx.fillRect(cx-6*s, cy+18*s, 5*s, 4*s); ctx.fillRect(cx+1*s, cy+18*s, 5*s, 4*s);
-                    ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-5*s, cy+13*s, 4*s, 6*s); ctx.fillRect(cx+1*s, cy+13*s, 4*s, 6*s);
-                    ctx.fillStyle = '#2a3a5a'; ctx.fillRect(cx-7*s, cy+8*s, 14*s, 6*s);
-                    ctx.fillStyle = '#1a2a3a'; ctx.fillRect(cx-7*s, cy+2*s, 14*s, 7*s);
-                    ctx.fillStyle = '#6b3a2a'; ctx.fillRect(cx-7*s, cy-14*s, 14*s, 16*s);
-                    ctx.fillStyle = '#5a2a1a'; ctx.fillRect(cx-8*s, cy-13*s, 2*s, 14*s); ctx.fillRect(cx+6*s, cy-13*s, 2*s, 14*s);
-                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx-9*s, cy-10*s, 2*s, 6*s); ctx.fillRect(cx+7*s, cy-10*s, 2*s, 6*s);
-                    ctx.fillStyle = '#222'; ctx.fillRect(cx-8*s, cy-16*s, 16*s, 2*s);
-                    ctx.fillStyle = '#8b5a4a'; ctx.fillRect(cx-3*s, cy-14*s, 6*s, 2*s);
+                    ctx.fillStyle = '#2a2e3a'; ctx.fillRect(cx-5*s, cy+19*s, 4*s, 3*s); ctx.fillRect(cx+1*s, cy+19*s, 4*s, 3*s);
+                    ctx.fillStyle = '#fce8db'; ctx.fillRect(cx-4*s, cy+14*s, 3*s, 6*s); ctx.fillRect(cx+1*s, cy+14*s, 3*s, 6*s);
+                    ctx.fillStyle = '#2a2a4a'; ctx.fillRect(cx-7*s, cy+8*s, 14*s, 5*s);
+                    ctx.fillStyle = '#e0e0e8'; ctx.fillRect(cx-6*s, cy+2*s, 12*s, 7*s);
+                    ctx.fillStyle = '#3355aa'; ctx.fillRect(cx-7*s, cy+2*s, 14*s, 7*s);
+                    ctx.fillStyle = '#fce8db'; ctx.fillRect(cx-8*s, cy+3*s, 2*s, 5*s); ctx.fillRect(cx+6*s, cy+3*s, 2*s, 5*s);
+                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx-8*s, cy-17*s, 16*s, 16*s); ctx.fillRect(cx-9*s, cy-15*s, 3*s, 14*s); ctx.fillRect(cx+6*s, cy-15*s, 3*s, 14*s);
+                    ctx.fillRect(cx-9*s, cy-1*s, 3*s, 18*s); ctx.fillRect(cx+6*s, cy-1*s, 3*s, 18*s); ctx.fillRect(cx-6*s, cy+16*s, 12*s, 4*s);
+                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx+6*s, cy-3*s, 4*s, 3*s);
+                    ctx.fillStyle = '#222222'; ctx.fillRect(cx+7*s, cy-2*s, 3*s, 14*s);
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(cx-3*s, cy-2*s, 6*s, 2*s);
                 }
                 ctx.restore();
             }
@@ -786,7 +801,7 @@
             init(); gameLoop();
             window.addEventListener('resize', resizeCanvas);
             document.addEventListener('touchmove', function(e) { if (e.target.closest('canvas')) e.preventDefault(); }, { passive: false });
-            console.log('✨ 佑佑与无尽阶梯 - 梦境像素小游戏已就绪 (速度优化 & 音效修复)');
+            console.log('✨ 佑佑与无尽阶梯 - 梦境像素小游戏已就绪 (原版角色 | 速度优化 | 音效修复)');
         })();
     </script>
 </body>
