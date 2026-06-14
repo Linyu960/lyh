@@ -18,18 +18,17 @@
         }
         .game-wrapper {
             position: relative; display: flex; flex-direction: column; align-items: center; gap: 0;
-            max-height: 100vh; max-width: 100vw; padding: 0; /* 去掉了 padding: 4px 0 */
+            max-height: 100vh; max-width: 100vw; padding: 0;
         }
         canvas {
             display: block; image-rendering: pixelated; image-rendering: crisp-edges; border-radius: 8px;
             box-shadow: 0 0 80px rgba(140,150,200,0.18), 0 0 160px rgba(120,130,180,0.08), 0 0 30px rgba(200,180,220,0.06);
-            /* 桌面端保留原有最大尺寸 */
             max-height: calc(100vh - 150px); max-width: 95vw;
             aspect-ratio: 480 / 750; object-fit: contain;
             touch-action: manipulation; cursor: pointer; -webkit-tap-highlight-color: transparent;
         }
         .mobile-controls {
-            display: none; /* 默认隐藏，桌面端用下面 media 显示？不，桌面端也不需要虚拟键，统一隐藏 */
+            display: none;
             position: relative; width: 100%; max-width: 480px; padding: 6px 16px; gap: 5px;
         }
         .dpad-row { display: flex; justify-content: center; gap: 6px; }
@@ -43,38 +42,24 @@
         }
         .dpad-btn:active { background: rgba(200,195,230,0.28); border-color: rgba(200,195,240,0.55); transform: scale(0.92); box-shadow: 0 0 22px rgba(170,180,230,0.35); }
         .dpad-btn.space-btn { width: auto; padding: 0 24px; font-size: 13px; letter-spacing: 2px; border-radius: 22px; }
-        .hint-text { color: rgba(170,170,200,0.5); font-size: 10px; text-align: center; letter-spacing: 1.2px; margin-top: 2px; pointer-events: none; transition: opacity 0.8s; padding: 0 10px; }
 
         /* 移动端全屏适配 */
         @media (max-width: 768px), (hover: none) and (pointer: coarse) {
             .mobile-controls {
-                display: none !important; /* 隐藏虚拟按键 */
-            }
-            .hint-text.mobile-hint {
-                display: none; /* 隐藏手机提示文字 */
-            }
-            .hint-text.desktop-hint {
-                display: none; /* 电脑提示也隐藏（反正不用键盘） */
+                display: none !important;
             }
             canvas {
                 max-height: none !important;
                 max-width: none !important;
                 width: 100vw;
                 height: 100vh;
-                object-fit: cover; /* 保持比例填充，裁剪多余部分 */
+                object-fit: cover;
                 border-radius: 0;
                 box-shadow: none;
             }
             .game-wrapper {
                 padding: 0;
             }
-        }
-
-        /* 桌面端保留提示文字 */
-        @media (min-width: 769px) and (hover: hover) and (pointer: fine) {
-            .mobile-controls { display: none; }
-            .hint-text.mobile-hint { display: none; }
-            .hint-text.desktop-hint { display: block; }
         }
     </style>
 </head>
@@ -85,19 +70,6 @@
 
     <div class="game-wrapper">
         <canvas id="gameCanvas"></canvas>
-        <!-- 虚拟按键结构保留，但手机端会被 CSS 隐藏 -->
-        <div class="mobile-controls" id="mobileControls">
-            <div class="dpad-row"><div class="dpad-btn" id="btnUp">▲</div></div>
-            <div class="dpad-row mid">
-                <div class="dpad-btn" id="btnLeft">◀</div>
-                <div class="dpad-btn space-btn" id="btnAction">对话</div>
-                <div class="dpad-btn" id="btnRight">▶</div>
-            </div>
-            <div class="dpad-row"><div class="dpad-btn" id="btnDown">▼</div></div>
-        </div>
-        <!-- 提示文字可保留 -->
-        <div class="hint-text desktop-hint">⌨ 方向键移动 · 空格键对话 · 鼠标点击移动</div>
-        <div class="hint-text mobile-hint">👆 点击画面移动 · 点击狗狗互动 · 虚拟按键辅助</div>
     </div>
 
     <script>
@@ -108,7 +80,6 @@
             const PI = Math.PI, sin = Math.sin, cos = Math.cos, random = Math.random, floor = Math.floor, abs = Math.abs;
 
             function resizeCanvas() {
-                // 移动端由 CSS 处理，此处不再手动设置宽高
                 const isMobile = window.innerWidth <= 768 || (('ontouchstart' in window) && window.innerWidth < 1024);
                 if (isMobile) {
                     canvas.width = GAME_W;
@@ -117,7 +88,6 @@
                     canvas.style.height = '100vh';
                     return;
                 }
-                // 桌面端
                 const maxW = Math.min(window.innerWidth * 0.95, 480);
                 const maxH = Math.min(window.innerHeight - 170, 750);
                 const scale = Math.min(maxW / GAME_W, maxH / GAME_H);
@@ -131,14 +101,13 @@
             resizeCanvas();
             ctx.imageSmoothingEnabled = false;
 
-            // ==================== 音效系统（我的世界风格脚步声） ====================
+            // ==================== 音效系统 ====================
             let audioCtx = null;
             function initAudio() {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
             }
 
-            // 我的世界风格脚步声——低沉短促的“咚”一声（音量加大）
             function playFootstep() {
                 if (!audioCtx) initAudio();
                 const now = audioCtx.currentTime;
@@ -154,7 +123,6 @@
                 osc.stop(now + 0.12);
             }
 
-            // 小狗仔叫声
             function playDogBark() {
                 if (!audioCtx) initAudio();
                 const now = audioCtx.currentTime;
@@ -253,23 +221,8 @@
             });
             window.addEventListener('keyup', (e) => { keys[e.key] = false; if (e.key === ' ' || e.key === 'Enter' || e.key === 'e' || e.key === 'E') actionPressed = false; });
 
-            const btnUp = document.getElementById('btnUp'), btnDown = document.getElementById('btnDown'),
-                  btnLeft = document.getElementById('btnLeft'), btnRight = document.getElementById('btnRight'),
-                  btnAction = document.getElementById('btnAction');
             const mobileKeys = { up: false, down: false, left: false, right: false };
             let mobileActionPressed = false, mobileActionJust = false;
-            function bindMobileBtn(el, keyName) {
-                el.addEventListener('pointerdown', (e) => {
-                    e.preventDefault(); e.stopPropagation();
-                    mobileKeys[keyName] = true;
-                    if (keyName === 'action') { if (!mobileActionPressed) mobileActionJust = true; mobileActionPressed = true; }
-                });
-                el.addEventListener('pointerup', (e) => { e.preventDefault(); e.stopPropagation(); mobileKeys[keyName] = false; if (keyName === 'action') mobileActionPressed = false; });
-                el.addEventListener('pointerleave', () => { mobileKeys[keyName] = false; if (keyName === 'action') mobileActionPressed = false; });
-                el.addEventListener('pointercancel', () => { mobileKeys[keyName] = false; if (keyName === 'action') mobileActionPressed = false; });
-            }
-            bindMobileBtn(btnUp, 'up'); bindMobileBtn(btnDown, 'down'); bindMobileBtn(btnLeft, 'left');
-            bindMobileBtn(btnRight, 'right'); bindMobileBtn(btnAction, 'action');
 
             function isUp() { return keys['ArrowUp'] || keys['w'] || keys['W'] || mobileKeys.up; }
             function isDown() { return keys['ArrowDown'] || keys['s'] || keys['S'] || mobileKeys.down; }
@@ -455,7 +408,8 @@
             let dogApproachPhase = 0, dogApproachTimer = 0, dogJumpAnim = 0, dogJumpPhase = 0;
 
             let targetX = null, targetStepIndex = null, hasTarget = false;
-            const AUTO_MOVE_SPEED_X = 0.65, AUTO_MOVE_SPEED_STEP = 0.025;
+            const AUTO_MOVE_SPEED_X = 0.8;    // 自动寻路速度加快
+            const AUTO_MOVE_SPEED_STEP = 0.035;
             const TARGET_REACH_THRESHOLD_X = 3, TARGET_REACH_THRESHOLD_STEP = 0.3;
 
             let footstepCooldown = 0;
@@ -483,7 +437,7 @@
             const STATE = { EXPLORING: 'exploring', DOG_APPROACH: 'dog_approach', DIALOGUE: 'dialogue', FINISHED: 'finished' };
             let gameState = STATE.EXPLORING;
             let dialogueQueue = [], dialogueIndex = 0, dialogueCharIndex = 0, dialogueText = '', dialogueSpeaker = '', dialogueFullText = '', dialogueTimer = 0;
-            const DIALOGUE_CHAR_SPEED = 12;
+            const DIALOGUE_CHAR_SPEED = 8; // 对话速度加快（原12）
             let heartParticles = [];
 
             function spawnHeart(x, y) { for (let i = 0; i < 10; i++) { heartParticles.push({ x, y, vx: (random()-0.5)*2.8, vy: -random()*3.5-1.5, life: 45+random()*45, maxLife: 90, size: 3+random()*12, color: random()<0.5?'#ff8aa8':'#ffb8c8', glowColor: random()<0.5?'#ffc0d0':'#ffe0e8' }); } }
@@ -534,7 +488,7 @@
                 if (gameState === STATE.DIALOGUE) return;
                 if (gameState === STATE.DOG_APPROACH) { updateDogJump(); if (gameState === STATE.DIALOGUE) return; if (dogJumpPhase === 0 && dogApproachPhase === 3) { gameState = STATE.FINISHED; } return; }
                 let moved = false;
-                const moveSpeed = 0.35, stepMoveSpeed = 0.013;
+                const moveSpeed = 0.45, stepMoveSpeed = 0.018; // 键盘移动也加快
                 if (isAnyKeyPressed()) { hasTarget = false; targetX = null; targetStepIndex = null; }
                 if (isLeft() && playerX > STEP_X + 15) { playerX -= moveSpeed; moved = true; playerFacing = 'left'; }
                 if (isRight() && playerX < STEP_RIGHT - 15) { playerX += moveSpeed; moved = true; playerFacing = 'right'; }
@@ -549,7 +503,6 @@
                         if (distY >= TARGET_REACH_THRESHOLD_STEP) { const stepY = Math.sign(dy) * Math.min(AUTO_MOVE_SPEED_STEP, distY); playerStepIndex += stepY; if (stepY < 0) playerFacing = 'up'; else if (stepY > 0) playerFacing = 'down'; moved = true; }
                     }
                 }
-                // 我的世界风格脚步声：每24帧（约0.4秒）响一下
                 if (moved) { if (footstepCooldown <= 0) { playFootstep(); footstepCooldown = 24; } }
                 if (footstepCooldown > 0) footstepCooldown--;
                 if (playerStepIndex > INITIAL_PLAYER_STEP + 1) playerStepIndex = INITIAL_PLAYER_STEP + 1;
@@ -877,7 +830,7 @@
             }
             init(); gameLoop();
             window.addEventListener('resize', resizeCanvas);
-            document.addEventListener('touchmove', function(e) { if (e.target.closest('.dpad-btn') || e.target.closest('canvas')) e.preventDefault(); }, { passive: false });
+            document.addEventListener('touchmove', function(e) { if (e.target.closest('canvas')) e.preventDefault(); }, { passive: false });
             console.log('✨ 佑佑与无尽阶梯 - 梦境像素小游戏已就绪');
         })();
     </script>
