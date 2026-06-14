@@ -55,8 +55,10 @@
             function resizeCanvas() {
                 const isMobile = window.innerWidth <= 768 || (('ontouchstart' in window) && window.innerWidth < 1024);
                 if (isMobile) {
-                    canvas.width = GAME_W; canvas.height = GAME_H;
-                    canvas.style.width = '100vw'; canvas.style.height = '100vh';
+                    canvas.width = GAME_W;
+                    canvas.height = GAME_H;
+                    canvas.style.width = '100vw';
+                    canvas.style.height = '100vh';
                     return;
                 }
                 const maxW = Math.min(window.innerWidth * 0.95, 480);
@@ -64,7 +66,8 @@
                 const scale = Math.min(maxW / GAME_W, maxH / GAME_H);
                 canvas.style.width = (GAME_W * scale) + 'px';
                 canvas.style.height = (GAME_H * scale) + 'px';
-                canvas.width = GAME_W; canvas.height = GAME_H;
+                canvas.width = GAME_W;
+                canvas.height = GAME_H;
             }
 
             window.addEventListener('resize', resizeCanvas);
@@ -109,7 +112,8 @@
                     gain.gain.setValueAtTime(0.1, time);
                     gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
                     osc.connect(gain).connect(audioCtx.destination);
-                    osc.start(time); osc.stop(time + 0.15);
+                    osc.start(time);
+                    osc.stop(time + 0.15);
                 }
                 bark(now);
                 bark(now + 0.22);
@@ -127,7 +131,8 @@
             function unlockAudio() {
                 initAudio();
                 if (!musicStarted && bgMusic) {
-                    bgMusic.play().then(() => { bgMusic.pause(); bgMusic.currentTime = 0; }).catch(() => {});
+                    bgMusic.play().then(() => { bgMusic.pause();
+                        bgMusic.currentTime = 0; }).catch(() => {});
                 }
                 document.removeEventListener('click', unlockAudio);
                 document.removeEventListener('touchstart', unlockAudio);
@@ -142,18 +147,19 @@
                 const canvasAspect = GAME_W / GAME_H, rectAspect = rect.width / rect.height;
                 let renderWidth, renderHeight, offsetX, offsetY;
                 if (rectAspect > canvasAspect) {
-                    renderHeight = rect.height; renderWidth = rect.height * canvasAspect;
-                    offsetX = (rect.width - renderWidth) / 2; offsetY = 0;
+                    renderHeight = rect.height;
+                    renderWidth = rect.height * canvasAspect;
+                    offsetX = (rect.width - renderWidth) / 2;
+                    offsetY = 0;
                 } else {
-                    renderWidth = rect.width; renderHeight = rect.width / canvasAspect;
-                    offsetX = 0; offsetY = (rect.height - renderHeight) / 2;
+                    renderWidth = rect.width;
+                    renderHeight = rect.width / canvasAspect;
+                    offsetX = 0;
+                    offsetY = (rect.height - renderHeight) / 2;
                 }
                 const gameX = (clientX - rect.left - offsetX) / renderWidth * GAME_W;
                 const gameY = (clientY - rect.top - offsetY) / renderHeight * GAME_H;
-                return {
-                    x: Math.max(0, Math.min(GAME_W, gameX)),
-                    y: Math.max(0, Math.min(GAME_H, gameY))
-                };
+                return { x: Math.max(0, Math.min(GAME_W, gameX)), y: Math.max(0, Math.min(GAME_H, gameY)) };
             }
 
             let clickRipples = [];
@@ -163,31 +169,46 @@
             }
             function updateClickRipples() {
                 for (let i = clickRipples.length - 1; i >= 0; i--) {
-                    const r = clickRipples[i]; r.radius += (r.maxRadius - r.radius) * 0.15; r.life -= r.decay;
+                    const r = clickRipples[i];
+                    r.radius += (r.maxRadius - r.radius) * 0.15;
+                    r.life -= r.decay;
                     if (r.life <= 0) clickRipples.splice(i, 1);
                 }
             }
             function drawClickRipples(ctx) {
                 for (const r of clickRipples) {
                     const alpha = r.life;
-                    ctx.globalAlpha = alpha * 0.35; ctx.strokeStyle = r.glowColor; ctx.lineWidth = 2.5;
-                    ctx.beginPath(); ctx.arc(r.x, r.y, r.radius, 0, PI * 2); ctx.stroke();
-                    ctx.globalAlpha = alpha * 0.55; ctx.strokeStyle = r.color; ctx.lineWidth = 1.2;
-                    ctx.beginPath(); ctx.arc(r.x, r.y, r.radius * 0.55, 0, PI * 2); ctx.stroke();
-                    ctx.globalAlpha = alpha * 0.8; ctx.fillStyle = r.color;
-                    ctx.beginPath(); ctx.arc(r.x, r.y, 2.5, 0, PI * 2); ctx.fill();
+                    ctx.globalAlpha = alpha * 0.35;
+                    ctx.strokeStyle = r.glowColor;
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(r.x, r.y, r.radius, 0, PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = alpha * 0.55;
+                    ctx.strokeStyle = r.color;
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.arc(r.x, r.y, r.radius * 0.55, 0, PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = alpha * 0.8;
+                    ctx.fillStyle = r.color;
+                    ctx.beginPath();
+                    ctx.arc(r.x, r.y, 2.5, 0, PI * 2);
+                    ctx.fill();
                 }
                 ctx.globalAlpha = 1;
             }
 
-            const keys = {}; let actionPressed = false, actionJustPressed = false;
+            const keys = {};
+            let actionPressed = false, actionJustPressed = false;
             window.addEventListener('keydown', (e) => {
                 keys[e.key] = true;
                 if (e.key === ' ' || e.key === 'Enter' || e.key === 'e' || e.key === 'E') {
                     if (!actionPressed) actionJustPressed = true;
-                    actionPressed = true; e.preventDefault();
+                    actionPressed = true;
+                    e.preventDefault();
                 }
-                if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
             });
             window.addEventListener('keyup', (e) => { keys[e.key] = false; if (e.key === ' ' || e.key === 'Enter' || e.key === 'e' || e.key === 'E') actionPressed = false; });
 
@@ -201,7 +222,11 @@
             function isActionJust() { const r = actionJustPressed || mobileActionJust; actionJustPressed = false; mobileActionJust = false; return r; }
             function isAnyKeyPressed() { return isUp() || isDown() || isLeft() || isRight(); }
 
-            // ==================== 粒子系统 ====================
+            // ==================== 阶梯系统 ====================
+            const STEP_HEIGHT = 28, STEP_DEPTH = 18, STEP_WIDTH = 160;
+            const STEP_X = (GAME_W - STEP_WIDTH) / 2, STEP_RIGHT = STEP_X + STEP_WIDTH;
+
+            // ==================== 粒子系统（大幅增强） ====================
             const formulaTexts = [
                 'E=mc²', '∫f(x)dx', '√-1', 'π≈3.1415', 'Σ∞', '∂/∂x',
                 'lim→∞', 'i²=-1', '∇·F', 'Δx→0', 'e^iπ+1=0', 'ℵ',
@@ -218,16 +243,13 @@
                 'ℂ', 'ℍ', 'ℕ', 'ℙ', 'ℚ', 'ℝ',
                 '𝕊', '𝕋', '𝕌', '𝕍', '𝕎', '𝕏'
             ];
+            // 改为白色系，带微妙的暖/冷调
             const formulaColors = [
-                '#c8d4ff', '#d4c8ff', '#c8e0ff', '#e0d0ff', '#c8d8f0', '#d8c8f0',
-                '#ffe8d0', '#ffd8c8', '#f0e0c8', '#e8d8f8', '#d0d8ff', '#f8e0d0',
-                '#c8d0f8', '#e0c8f0', '#d8e0ff', '#f0d8e8', '#cce0ff', '#e8d0f8',
-                '#ffecd0', '#d8c8e8', '#c8dcef', '#efd8c8', '#d0c8f0', '#ffe4d4',
-                '#c4d4f8', '#dcc8f4', '#c8e4f8', '#f4dcc8', '#d4d0fc', '#fce4cc',
-                '#b8d0ff', '#e0c0e8', '#c8f0e0', '#f0e0c0', '#d8d0e8', '#e8d8c8',
-                '#c0d0f0', '#e8c8d8', '#d0e0f0', '#f0d8d0', '#c8c8e8', '#e0e0d8'
+                '#ffffff', '#fafafa', '#f5f5ff', '#fff8f5', '#f8f8ff',
+                '#fffaf5', '#f5f8ff', '#faf5ff', '#fff5f5', '#f5fff8'
             ];
 
+            // 全局漂浮粒子（遍布全屏）
             class FormulaParticle {
                 constructor() { this.reset(true); }
                 reset(initial = false) {
@@ -236,10 +258,10 @@
                     this.text = formulaTexts[floor(random() * formulaTexts.length)];
                     this.colorIndex = floor(random() * formulaColors.length);
                     this.baseColor = formulaColors[this.colorIndex];
-                    this.size = 8 + random() * 18;
-                    this.speedX = (random() - 0.5) * 0.12;
-                    this.speedY = -0.04 - random() * 0.1;
-                    this.baseAlpha = 0.04 + random() * 0.12;
+                    this.size = 10 + random() * 20; // 更大更显眼
+                    this.speedX = (random() - 0.5) * 0.15;
+                    this.speedY = -0.05 - random() * 0.12;
+                    this.baseAlpha = 0.2 + random() * 0.3; // 更显眼
                     this.alpha = this.baseAlpha;
                     this.wobbleAmp = 0.3 + random() * 0.6;
                     this.wobbleSpeed = 0.0015 + random() * 0.004;
@@ -247,24 +269,23 @@
                     this.life = floor(random() * 1000);
                     this.twinklePhase = random() * PI * 2;
                     this.twinkleSpeed = 0.008 + random() * 0.02;
-                    this.glowSize = 2 + random() * 5;
+                    this.glowSize = 3 + random() * 6;
                 }
                 update() {
                     this.life++;
-                    this.x += this.speedX + sin(this.life * this.wobbleSpeed + this.wobbleOffset) * this.wobbleAmp * 0.15;
-                    this.y += this.speedY + cos(this.life * this.wobbleSpeed * 1.3 + this.wobbleOffset) * this.wobbleAmp * 0.1;
+                    this.x += this.speedX + sin(this.life * this.wobbleSpeed + this.wobbleOffset) * this.wobbleAmp * 0.2;
+                    this.y += this.speedY + cos(this.life * this.wobbleSpeed * 1.3 + this.wobbleOffset) * this.wobbleAmp * 0.12;
                     const twinkle = sin(this.life * this.twinkleSpeed + this.twinklePhase);
-                    this.alpha = this.baseAlpha + twinkle * 0.04;
-                    this.alpha = Math.max(0.02, Math.min(0.18, this.alpha));
+                    this.alpha = this.baseAlpha + twinkle * 0.12;
+                    this.alpha = Math.max(0.12, Math.min(0.55, this.alpha));
                     if (this.y < -80 || this.y > GAME_H + 80 || this.x < -120 || this.x > GAME_W + 120) {
                         this.reset(false);
-                        if (random() < 0.5) { this.y = -60; this.x = random() * GAME_W; }
-                        else { this.y = GAME_H + 60; this.x = random() * GAME_W; }
+                        if (random() < 0.5) { this.y = -60; this.x = random() * GAME_W; } else { this.y = GAME_H + 60; this.x = random() * GAME_W; }
                     }
                 }
                 draw(ctx) {
                     ctx.save();
-                    const glowAlpha = this.alpha * 0.3;
+                    const glowAlpha = this.alpha * 0.4;
                     const glowSize = this.glowSize;
                     for (let ox = -glowSize; ox <= glowSize; ox += glowSize) {
                         for (let oy = -glowSize; oy <= glowSize; oy += glowSize) {
@@ -278,16 +299,60 @@
                         }
                     }
                     ctx.globalAlpha = this.alpha;
-                    ctx.fillStyle = '#f8f4ff';
+                    ctx.fillStyle = '#ffffff';
                     ctx.font = `${this.size}px "Courier New", "Noto Serif SC", "Georgia", monospace`;
                     ctx.fillText(this.text, this.x, this.y);
-                    ctx.globalAlpha = this.alpha * 0.5;
-                    ctx.fillStyle = this.baseColor;
-                    ctx.fillText(this.text, this.x + 0.3, this.y + 0.3);
                     ctx.restore();
                 }
             }
 
+            // 楼梯区域专用粒子（飘过阶梯的）
+            class StairParticle {
+                constructor() { this.reset(true); }
+                reset(initial = false) {
+                    const margin = 40;
+                    this.x = STEP_X - margin + random() * (STEP_WIDTH + margin * 2);
+                    this.y = initial ? random() * GAME_H : GAME_H + 40;
+                    this.text = formulaTexts[floor(random() * formulaTexts.length)];
+                    this.baseColor = formulaColors[floor(random() * formulaColors.length)];
+                    this.size = 12 + random() * 18;
+                    this.speedY = -0.18 - random() * 0.25;
+                    this.speedX = (random() - 0.5) * 0.12;
+                    this.alpha = 0.3 + random() * 0.35;
+                    this.twinklePhase = random() * PI * 2;
+                    this.twinkleSpeed = 0.01 + random() * 0.03;
+                    this.life = floor(random() * 500);
+                }
+                update() {
+                    this.life++;
+                    this.y += this.speedY;
+                    this.x += this.speedX;
+                    const twinkle = sin(this.life * this.twinkleSpeed + this.twinklePhase);
+                    this.alpha = 0.25 + twinkle * 0.2;
+                    this.alpha = Math.max(0.2, Math.min(0.6, this.alpha));
+                    if (this.y < -60) {
+                        this.reset(false);
+                        this.y = GAME_H + 30;
+                        const margin = 40;
+                        this.x = STEP_X - margin + random() * (STEP_WIDTH + margin * 2);
+                    }
+                    if (this.x < STEP_X - 80) this.speedX = abs(this.speedX);
+                    if (this.x > STEP_RIGHT + 80) this.speedX = -abs(this.speedX);
+                }
+                draw(ctx) {
+                    ctx.save();
+                    ctx.globalAlpha = this.alpha;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `${this.size}px "Courier New", "Noto Serif SC", "Georgia", monospace`;
+                    ctx.fillText(this.text, this.x, this.y);
+                    ctx.globalAlpha = this.alpha * 0.35;
+                    ctx.fillStyle = this.baseColor;
+                    ctx.fillText(this.text, this.x + 1, this.y + 1);
+                    ctx.restore();
+                }
+            }
+
+            // 光点类
             class LightPoint {
                 constructor() { this.reset(true); }
                 reset(initial = false) {
@@ -297,13 +362,10 @@
                     if (initial && random() < 0.4) { this.y = GAME_H * 0.3 + random() * GAME_H * 0.5; }
                     this.size = 1.5 + random() * 3.5;
                     const colorType = random();
-                    if (colorType < 0.35) { this.coreColor = '#ffe8c0'; this.glowColor = '#ffd4a0'; }
-                    else if (colorType < 0.65) { this.coreColor = '#d0e0ff'; this.glowColor = '#c0d4f8'; }
-                    else if (colorType < 0.85) { this.coreColor = '#e8d0ff'; this.glowColor = '#dcc0f8'; }
-                    else { this.coreColor = '#ffe0e8'; this.glowColor = '#ffd0d8'; }
+                    if (colorType < 0.5) { this.coreColor = '#ffffff'; this.glowColor = '#ffffff'; } else if (colorType < 0.8) { this.coreColor = '#f0f0ff'; this.glowColor = '#ffffff'; } else { this.coreColor = '#fff8f0'; this.glowColor = '#ffffff'; }
                     this.speedX = (random() - 0.5) * 0.15;
                     this.speedY = -0.1 - random() * 0.3;
-                    this.baseAlpha = 0.15 + random() * 0.5;
+                    this.baseAlpha = 0.3 + random() * 0.5;
                     this.alpha = this.baseAlpha;
                     this.wobbleAmp = 0.3 + random() * 0.7;
                     this.wobbleSpeed = 0.006 + random() * 0.02;
@@ -319,7 +381,7 @@
                     this.y += this.speedY;
                     const twinkle = sin(this.life * this.twinkleSpeed + this.twinklePhase);
                     this.alpha = this.baseAlpha + twinkle * 0.25;
-                    this.alpha = Math.max(0.06, Math.min(0.75, this.alpha));
+                    this.alpha = Math.max(0.2, Math.min(0.8, this.alpha));
                     if (this.y < -40 || this.y > GAME_H + 40 || this.x < -60 || this.x > GAME_W + 60) {
                         this.reset(false);
                         this.y = GAME_H + 20 + random() * 20;
@@ -354,24 +416,19 @@
                     ctx.beginPath();
                     ctx.arc(this.x, this.y, this.size * 0.55, 0, PI * 2);
                     ctx.fill();
-                    ctx.globalAlpha = this.alpha * 0.8;
-                    ctx.fillStyle = this.coreColor;
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size * 0.85, 0, PI * 2);
-                    ctx.fill();
                     ctx.restore();
                 }
             }
 
+            // 初始化粒子
             const formulaParticles = [];
-            for (let i = 0; i < 80; i++) formulaParticles.push(new FormulaParticle());
+            for (let i = 0; i < 120; i++) formulaParticles.push(new FormulaParticle()); // 120个全局粒子
+            const stairParticles = [];
+            for (let i = 0; i < 25; i++) stairParticles.push(new StairParticle()); // 25个楼梯粒子
             const lightPoints = [];
-            for (let i = 0; i < 35; i++) lightPoints.push(new LightPoint());
+            for (let i = 0; i < 40; i++) lightPoints.push(new LightPoint());
 
-            // ==================== 阶梯系统 ====================
-            const STEP_HEIGHT = 28, STEP_DEPTH = 18, STEP_WIDTH = 160;
-            const STEP_X = (GAME_W - STEP_WIDTH) / 2, STEP_RIGHT = STEP_X + STEP_WIDTH;
-
+            // ==================== 游戏状态 ====================
             let playerStepIndex = 10; const INITIAL_PLAYER_STEP = 10;
             let playerX = GAME_W / 2, worldOffsetY = 0, playerFacing = 'down';
             const DOG_STEP_INDEX = 5; let dogX = GAME_W / 2, dogVisible = true;
@@ -398,9 +455,7 @@
                 const screenY = worldStepToScreenY(dogStep);
                 if (screenY < -60 || screenY > GAME_H + 60) return null;
                 let sx = dogX, sy = screenY;
-                if (dogJumpPhase === 1) { const jp = dogJumpAnim / 50; sy -= sin(jp * PI) * 35; }
-                else if (dogJumpPhase === 2) { sy = getPlayerScreenY() - 18; sx = getPlayerScreenX() + 8; }
-                else if (dogJumpPhase === 3) { const fp = 1 - (dogJumpAnim / 90); sy = getPlayerScreenY() - 18 + fp * 18; }
+                if (dogJumpPhase === 1) { const jp = dogJumpAnim / 50; sy -= sin(jp * PI) * 35; } else if (dogJumpPhase === 2) { sy = getPlayerScreenY() - 18; sx = getPlayerScreenX() + 8; } else if (dogJumpPhase === 3) { const fp = 1 - (dogJumpAnim / 90); sy = getPlayerScreenY() - 18 + fp * 18; }
                 return { x: sx, y: sy, step: dogStep };
             }
 
@@ -410,9 +465,9 @@
             const DIALOGUE_CHAR_SPEED = 2;
             let heartParticles = [];
 
-            function spawnHeart(x, y) { for (let i = 0; i < 10; i++) { heartParticles.push({ x, y, vx: (random()-0.5)*2.8, vy: -random()*3.5-1.5, life: 45+random()*45, maxLife: 90, size: 3+random()*12, color: random()<0.5?'#ff8aa8':'#ffb8c8', glowColor: random()<0.5?'#ffc0d0':'#ffe0e8' }); } }
-            function updateHeartParticles() { for (let i = heartParticles.length-1; i>=0; i--) { const p = heartParticles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.04; p.life--; if (p.life<=0) heartParticles.splice(i,1); } }
-            function drawHeartParticles(ctx) { for (const p of heartParticles) { const alpha = Math.max(0, p.life/p.maxLife), s = p.size; ctx.globalAlpha = alpha*0.4; ctx.fillStyle = p.glowColor; ctx.beginPath(); ctx.arc(p.x,p.y,s*0.8,0,PI*2); ctx.fill(); ctx.globalAlpha = alpha; ctx.fillStyle = p.color; ctx.fillRect(p.x-s/2, p.y-s/2, s, s); ctx.fillRect(p.x-s/2-s*0.35, p.y-s/2+s*0.3, s*0.7, s*0.7); ctx.fillRect(p.x+s/2-s*0.35, p.y-s/2+s*0.3, s*0.7, s*0.7); } ctx.globalAlpha = 1; }
+            function spawnHeart(x, y) { for (let i = 0; i < 10; i++) { heartParticles.push({ x, y, vx: (random() - 0.5) * 2.8, vy: -random() * 3.5 - 1.5, life: 45 + random() * 45, maxLife: 90, size: 3 + random() * 12, color: random() < 0.5 ? '#ff8aa8' : '#ffb8c8', glowColor: random() < 0.5 ? '#ffc0d0' : '#ffe0e8' }); } }
+            function updateHeartParticles() { for (let i = heartParticles.length - 1; i >= 0; i--) { const p = heartParticles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.04; p.life--; if (p.life <= 0) heartParticles.splice(i, 1); } }
+            function drawHeartParticles(ctx) { for (const p of heartParticles) { const alpha = Math.max(0, p.life / p.maxLife), s = p.size; ctx.globalAlpha = alpha * 0.4; ctx.fillStyle = p.glowColor; ctx.beginPath(); ctx.arc(p.x, p.y, s * 0.8, 0, PI * 2); ctx.fill(); ctx.globalAlpha = alpha; ctx.fillStyle = p.color; ctx.fillRect(p.x - s / 2, p.y - s / 2, s, s); ctx.fillRect(p.x - s / 2 - s * 0.35, p.y - s / 2 + s * 0.3, s * 0.7, s * 0.7); ctx.fillRect(p.x + s / 2 - s * 0.35, p.y - s / 2 + s * 0.3, s * 0.7, s * 0.7); } ctx.globalAlpha = 1; }
 
             function startDialogue(lines) { dialogueQueue = lines; dialogueIndex = 0; gameState = STATE.DIALOGUE; startDialogueLine(); }
             function startDialogueLine() {
@@ -421,16 +476,14 @@
                     if (dogJumpPhase === 2 && gameState === STATE.DIALOGUE) { dogJumpPhase = 3; dogJumpAnim = 90; }
                     gameState = STATE.FINISHED; return;
                 }
-                const line = dialogueQueue[dialogueIndex]; dialogueSpeaker = line.speaker; dialogueFullText = line.text;
-                dialogueText = ''; dialogueCharIndex = 0; dialogueTimer = 0;
+                const line = dialogueQueue[dialogueIndex]; dialogueSpeaker = line.speaker; dialogueFullText = line.text; dialogueText = ''; dialogueCharIndex = 0; dialogueTimer = 0;
             }
             function advanceDialogue() {
-                if (dialogueCharIndex < dialogueFullText.length) { dialogueCharIndex = dialogueFullText.length; dialogueText = dialogueFullText; }
-                else {
+                if (dialogueCharIndex < dialogueFullText.length) { dialogueCharIndex = dialogueFullText.length; dialogueText = dialogueFullText; } else {
                     dialogueIndex++;
                     if (dialogueIndex >= dialogueQueue.length) {
                         dialogueQueue = []; dialogueIndex = 0; dialogueCharIndex = 0; dialogueText = ''; dialogueSpeaker = ''; dialogueFullText = '';
-                        if (dogJumpPhase === 2) { dogJumpPhase = 3; dogJumpAnim = 90; spawnHeart(getPlayerScreenX(), getPlayerScreenY()-30); }
+                        if (dogJumpPhase === 2) { dogJumpPhase = 3; dogJumpAnim = 90; spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 30); }
                         gameState = STATE.FINISHED;
                     } else { startDialogueLine(); }
                 }
@@ -448,7 +501,7 @@
             function updateDogJump() {
                 if (dogJumpPhase === 1) {
                     dogJumpAnim++;
-                    if (dogJumpAnim > 50) { dogJumpPhase = 2; dogJumpAnim = 0; startMusic(); playDogBark(); spawnHeart(getPlayerScreenX(), getPlayerScreenY()-25);
+                    if (dogJumpAnim > 50) { dogJumpPhase = 2; dogJumpAnim = 0; startMusic(); playDogBark(); spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 25);
                         startDialogue([ { speaker: '缪缪', text: '佑佑？' }, { speaker: '', text: '(小狗兴奋地跳上缪缪的身子，用脑袋蹭着她)' }, { speaker: '', text: '(佑佑热情地舔着缪缪的脸颊)' }, { speaker: '佑佑', text: '妈妈！' }, { speaker: '缪缪', text: '你会说话了？！' }, { speaker: '佑佑', text: '妈妈，我好想你……' }, { speaker: '缪缪', text: '我也好想你，佑佑……' } ]); }
                 }
                 if (dogJumpPhase === 3) { dogJumpAnim--; if (dogJumpAnim <= 0) { dogJumpPhase = 0; dogJumpAnim = 0; dogApproachPhase = 3; } }
@@ -467,8 +520,7 @@
                 if (hasTarget && !isAnyKeyPressed()) {
                     const dx = targetX - playerX, dy = targetStepIndex - playerStepIndex;
                     const distX = abs(dx), distY = abs(dy);
-                    if (distX < TARGET_REACH_THRESHOLD_X && distY < TARGET_REACH_THRESHOLD_STEP) { playerX = targetX; playerStepIndex = targetStepIndex; hasTarget = false; targetX = null; targetStepIndex = null; }
-                    else {
+                    if (distX < TARGET_REACH_THRESHOLD_X && distY < TARGET_REACH_THRESHOLD_STEP) { playerX = targetX; playerStepIndex = targetStepIndex; hasTarget = false; targetX = null; targetStepIndex = null; } else {
                         if (distX >= TARGET_REACH_THRESHOLD_X) { const stepX = Math.sign(dx) * Math.min(AUTO_MOVE_SPEED_X, distX); playerX += stepX; if (stepX < 0) playerFacing = 'left'; else if (stepX > 0) playerFacing = 'right'; moved = true; }
                         if (distY >= TARGET_REACH_THRESHOLD_STEP) { const stepY = Math.sign(dy) * Math.min(AUTO_MOVE_SPEED_STEP, distY); playerStepIndex += stepY; if (stepY < 0) playerFacing = 'up'; else if (stepY > 0) playerFacing = 'down'; moved = true; }
                     }
@@ -479,26 +531,20 @@
                 if (playerStepIndex < -50) playerStepIndex = -50;
                 const targetOffsetY = 0; worldOffsetY += (targetOffsetY - worldOffsetY) * 0.1;
                 if (playerX < STEP_X + 12) playerX = STEP_X + 12; if (playerX > STEP_RIGHT - 12) playerX = STEP_RIGHT - 12;
-                if (dogApproachPhase === 0) { dogX = GAME_W / 2 + sin(Date.now() * 0.001) * 50; }
-                else if (dogApproachPhase === 1) { const tx = playerX + (random() - 0.5) * 35; dogX += (tx - dogX) * 0.02; }
-                else if (dogApproachPhase >= 2 && dogJumpPhase === 0) { dogX += (playerX - dogX) * 0.03; }
+                if (dogApproachPhase === 0) { dogX = GAME_W / 2 + sin(Date.now() * 0.001) * 50; } else if (dogApproachPhase === 1) { const tx = playerX + (random() - 0.5) * 35; dogX += (tx - dogX) * 0.02; } else if (dogApproachPhase >= 2 && dogJumpPhase === 0) { dogX += (playerX - dogX) * 0.03; }
                 const dogScreenY = worldStepToScreenY(getCurrentDogStep()); dogVisible = (dogScreenY > -50 && dogScreenY < GAME_H + 50);
                 if (moved && gameState === STATE.EXPLORING) checkDogEncounter();
-                if (hasTarget && dogApproachPhase === 0 && gameState === STATE.EXPLORING) {
-                    const distToDog = Math.abs(playerStepIndex - getCurrentDogStep()), xDistToDog = Math.abs(playerX - dogX);
-                    if (distToDog < 5 && xDistToDog < 130 && dogVisible) { dogApproachPhase = 1; dogApproachTimer = 0; }
-                }
+                if (hasTarget && dogApproachPhase === 0 && gameState === STATE.EXPLORING) { const distToDog = Math.abs(playerStepIndex - getCurrentDogStep()), xDistToDog = Math.abs(playerX - dogX); if (distToDog < 5 && xDistToDog < 130 && dogVisible) { dogApproachPhase = 1; dogApproachTimer = 0; } }
             }
 
             function update() {
                 updatePlayer(); updateDialogue(); updateDogJump(); updateHeartParticles(); updateClickRipples();
-                for (const p of formulaParticles) p.update(); for (const lp of lightPoints) lp.update();
+                for (const p of formulaParticles) p.update();
+                for (const p of stairParticles) p.update();
+                for (const lp of lightPoints) lp.update();
                 if (gameState === STATE.EXPLORING && dogApproachPhase < 3) checkDogEncounter();
                 if (gameState === STATE.DIALOGUE && isActionJust()) advanceDialogue();
-                if (gameState === STATE.FINISHED && isActionJust() && dogJumpPhase === 0) {
-                    spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 20); playDogBark();
-                    startDialogue([ { speaker: '佑佑', text: '妈妈，我们再也不分开了好吗？' }, { speaker: '缪缪', text: '嗯，永远不分开了。' } ]);
-                }
+                if (gameState === STATE.FINISHED && isActionJust() && dogJumpPhase === 0) { spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 20); playDogBark(); startDialogue([ { speaker: '佑佑', text: '妈妈，我们再也不分开了好吗？' }, { speaker: '缪缪', text: '嗯，永远不分开了。' } ]); }
             }
 
             canvas.addEventListener('pointerdown', function(e) {
@@ -506,12 +552,10 @@
                 if (gameState === STATE.DIALOGUE) { advanceDialogue(); addClickRipple(gameX, gameY, '#d0d8ff'); return; }
                 if (gameState === STATE.DOG_APPROACH) { if (dogJumpPhase === 2) addClickRipple(gameX, gameY, '#ffe8b0'); return; }
                 const dogPos = getDogScreenPosition(); let clickedDog = false;
-                if (dogPos && dogVisible) { const dogClickRadius = 42; const dx = gameX - dogPos.x, dy = gameY - dogPos.y; if (Math.sqrt(dx*dx+dy*dy) < dogClickRadius) clickedDog = true; }
+                if (dogPos && dogVisible) { const dogClickRadius = 42; const dx = gameX - dogPos.x, dy = gameY - dogPos.y; if (Math.sqrt(dx * dx + dy * dy) < dogClickRadius) clickedDog = true; }
                 if (clickedDog) {
                     addClickRipple(dogPos.x, dogPos.y, '#ffe8b0');
-                    if (gameState === STATE.FINISHED) { spawnHeart(getPlayerScreenX(), getPlayerScreenY()-20); playDogBark(); startDialogue([ { speaker: '佑佑', text: '妈妈，我们再也不分开了好吗？' }, { speaker: '缪缪', text: '嗯，永远不分开了。' } ]); }
-                    else if (dogApproachPhase >= 2 && dogJumpPhase === 0) { spawnHeart(getPlayerScreenX(), getPlayerScreenY()-20); playDogBark(); startDialogue([ { speaker: '佑佑', text: '妈妈，我们再也不分开了好吗？' }, { speaker: '缪缪', text: '嗯，永远不分开了。' } ]); }
-                    else if (dogApproachPhase < 2 && gameState === STATE.EXPLORING) { dogApproachPhase = 1; dogApproachTimer = 0; targetStepIndex = getCurrentDogStep(); targetX = dogX; hasTarget = true; }
+                    if (gameState === STATE.FINISHED) { spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 20); playDogBark(); startDialogue([ { speaker: '佑佑', text: '妈妈，我们再也不分开了好吗？' }, { speaker: '缪缪', text: '嗯，永远不分开了。' } ]); } else if (dogApproachPhase >= 2 && dogJumpPhase === 0) { spawnHeart(getPlayerScreenX(), getPlayerScreenY() - 20); playDogBark(); startDialogue([ { speaker: '佑佑', text: '妈妈，我们再也不分开了好吗？' }, { speaker: '缪缪', text: '嗯，永远不分开了。' } ]); } else if (dogApproachPhase < 2 && gameState === STATE.EXPLORING) { dogApproachPhase = 1; dogApproachTimer = 0; targetStepIndex = getCurrentDogStep(); targetX = dogX; hasTarget = true; }
                     return;
                 }
                 const stepIndexFloat = playerStepIndex + (gameY - GAME_H / 2 + worldOffsetY) / STEP_HEIGHT;
@@ -534,21 +578,18 @@
                     if (screenY < -50 || screenY > GAME_H + 50) continue;
                     const x = STEP_X, w = STEP_WIDTH, h = STEP_HEIGHT, d = STEP_DEPTH;
                     const topY = screenY - h / 2;
-                    // 踏板更白
                     const treadGrad = ctx.createLinearGradient(x, topY - d, x, topY);
                     treadGrad.addColorStop(0, '#ffffff');
                     treadGrad.addColorStop(0.4, '#fdfdfd');
                     treadGrad.addColorStop(1, '#f0f0f0');
                     ctx.fillStyle = treadGrad; ctx.fillRect(x, topY - d, w, d);
                     ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fillRect(x + 2, topY - d + 1, w - 4, 2);
-                    // 立面也更亮
                     const riserGrad = ctx.createLinearGradient(x, topY, x, topY + h);
                     riserGrad.addColorStop(0, '#e8e8e8');
                     riserGrad.addColorStop(0.5, '#d8d8d8');
                     riserGrad.addColorStop(1, '#c8c8c8');
                     ctx.fillStyle = riserGrad; ctx.fillRect(x, topY, w, h);
                     ctx.fillStyle = 'rgba(50,50,50,0.15)'; ctx.fillRect(x + 3, topY + h - 2, w - 6, 2);
-                    // 去掉了两侧的竖线
                     const shadowGrad = ctx.createLinearGradient(x, topY + h, x, topY + h + 16);
                     shadowGrad.addColorStop(0, 'rgba(40,35,55,0.35)'); shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
                     ctx.fillStyle = shadowGrad; ctx.fillRect(x - 8, topY + h, w + 16, 16);
@@ -692,20 +733,14 @@
                     const twinkle = sin(time + i * 0.7) * 0.4 + 0.6;
                     const starAlpha = twinkle * (0.3 + (i % 4) * 0.15);
                     let starColor;
-                    switch (i % 6) {
-                        case 0: starColor = '#f8f4ff'; break;
-                        case 1: starColor = '#ffe8d0'; break;
-                        case 2: starColor = '#d0d8ff'; break;
-                        case 3: starColor = '#f0e8ff'; break;
-                        case 4: starColor = '#ffe0f0'; break;
-                        default: starColor = '#e0f0ff';
-                    }
+                    switch (i % 6) { case 0: starColor = '#ffffff'; break; case 1: starColor = '#f0f0ff'; break; case 2: starColor = '#ffffff'; break; case 3: starColor = '#f0f0ff'; break; case 4: starColor = '#ffffff'; break; default: starColor = '#e0f0ff'; }
                     ctx.globalAlpha = starAlpha; ctx.fillStyle = starColor; ctx.fillRect(sx, sy, starSize, starSize);
                     if (starSize > 2) { ctx.globalAlpha = starAlpha * 0.3; ctx.fillRect(sx - 1, sy - 1, starSize + 2, starSize + 2); }
                 }
                 ctx.globalAlpha = 1;
                 for (const lp of lightPoints) lp.draw(ctx);
                 for (const p of formulaParticles) p.draw(ctx);
+                for (const p of stairParticles) p.draw(ctx);
                 const mistGrad = ctx.createLinearGradient(0, GAME_H - 120, 0, GAME_H);
                 mistGrad.addColorStop(0, 'rgba(40,35,60,0)'); mistGrad.addColorStop(0.5, 'rgba(40,35,60,0.06)');
                 mistGrad.addColorStop(1, 'rgba(30,25,50,0.12)');
@@ -747,9 +782,7 @@
                 indicatorGrad.addColorStop(0,'rgba(200,185,230,0)'); indicatorGrad.addColorStop(0.5,'rgba(200,185,230,0.55)'); indicatorGrad.addColorStop(1,'rgba(200,185,230,0)');
                 ctx.fillStyle = indicatorGrad; ctx.fillRect(boxX+boxW/2-25, boxY-1.5, 50, 2.5);
                 if (dialogueSpeaker) {
-                    if (dialogueSpeaker === '缪缪') ctx.fillStyle = '#f8c8d8';
-                    else if (dialogueSpeaker === '佑佑') ctx.fillStyle = '#f0d890';
-                    else ctx.fillStyle = '#f0d890';
+                    if (dialogueSpeaker === '缪缪') ctx.fillStyle = '#f8c8d8'; else if (dialogueSpeaker === '佑佑') ctx.fillStyle = '#f0d890'; else ctx.fillStyle = '#f0d890';
                     ctx.font = 'bold 15px "Microsoft YaHei", "PingFang SC", sans-serif';
                     ctx.fillText(dialogueSpeaker, boxX + 20, boxY + 26);
                 }
@@ -761,12 +794,7 @@
 
             function wrapText(ctx, text, maxWidth) {
                 const lines = []; let currentLine = '';
-                for (let i = 0; i < text.length; i++) {
-                    const char = text[i], testLine = currentLine + char;
-                    if (ctx.measureText(testLine).width > maxWidth && currentLine.length > 0) {
-                        lines.push(currentLine); currentLine = char;
-                    } else currentLine = testLine;
-                }
+                for (let i = 0; i < text.length; i++) { const char = text[i], testLine = currentLine + char; if (ctx.measureText(testLine).width > maxWidth && currentLine.length > 0) { lines.push(currentLine); currentLine = char; } else currentLine = testLine; }
                 if (currentLine) lines.push(currentLine);
                 return lines;
             }
@@ -780,13 +808,7 @@
                 const playerScreenX = getPlayerScreenX(), playerScreenY = getPlayerScreenY();
                 drawPixelCharacter(playerScreenX, playerScreenY, 1);
                 drawHeartParticles(ctx); drawClickRipples(ctx);
-                if (dogJumpPhase === 2 && dogPos) {
-                    drawPixelDog(dogPos.x, dogPos.y, 1.1);
-                    if (random() < 0.5) {
-                        const lickX = playerScreenX + (random()-0.5)*10, lickY = playerScreenY - 14 + (random()-0.5)*6;
-                        ctx.fillStyle = 'rgba(255,200,210,0.7)'; ctx.fillRect(lickX, lickY, 2, 2);
-                    }
-                }
+                if (dogJumpPhase === 2 && dogPos) { drawPixelDog(dogPos.x, dogPos.y, 1.1); if (random() < 0.5) { const lickX = playerScreenX + (random()-0.5)*10, lickY = playerScreenY - 14 + (random()-0.5)*6; ctx.fillStyle = 'rgba(255,200,210,0.7)'; ctx.fillRect(lickX, lickY, 2, 2); } }
                 drawDialogueBox();
                 const vignetteGrad = ctx.createRadialGradient(GAME_W/2, GAME_H/2, GAME_W*0.5, GAME_W/2, GAME_H/2, GAME_W*0.82);
                 vignetteGrad.addColorStop(0,'rgba(0,0,0,0)'); vignetteGrad.addColorStop(0.6,'rgba(0,0,0,0.08)'); vignetteGrad.addColorStop(1,'rgba(0,0,0,0.5)');
@@ -805,7 +827,7 @@
             init(); gameLoop();
             window.addEventListener('resize', resizeCanvas);
             document.addEventListener('touchmove', function(e) { if (e.target.closest('canvas')) e.preventDefault(); }, { passive: false });
-            console.log('✨ 佑佑与无尽阶梯 - 梦境像素小游戏已就绪 (两侧竖线已移除)');
+            console.log('✨ 佑佑与无尽阶梯 - 梦境像素小游戏已就绪 (数学代码环绕)');
         })();
     </script>
 </body>
